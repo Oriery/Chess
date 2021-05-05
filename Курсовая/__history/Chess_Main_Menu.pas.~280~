@@ -1,0 +1,430 @@
+unit Chess_Main_Menu;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls,
+  Vcl.Imaging.jpeg, Vcl.ActnMan, Vcl.ActnColorMaps, Vcl.ExtDlgs, Vcl.ComCtrls,
+  Vcl.Imaging.pngimage, Vcl.Menus;
+
+type
+  TFigure = Class (TImage)
+    private
+        FFigureType: Char;
+        FigureInd, PosOnBoardX, PosOnBoardY: Byte;
+        IsAlive, IsWhite, IsOnDrag: Boolean;
+        HasMoved: Boolean; // Нужно для рокировки
+    published
+        constructor Create();
+  End;
+
+  TCell = Record
+    FigureName: Char; // '0'(ничего), K, Q, R, N, B, P(Pawn)
+    FigureColorIsWhite: Boolean;
+    FigureIndex: Byte;
+  End;
+
+  TBoard = Array[1..8, 1..8] of TCell;
+
+  TFormMainMenu = class(TForm)
+    LabelMenuHead: TLabel;
+    ButtonMenuTop: TButton;
+    ImageBackGround: TImage;
+    ButtonMenuMid: TButton;
+    ButtonMenuDown: TButton;
+    PageControl1: TPageControl;
+    TabSheet1: TTabSheet;
+    TabSheet2: TTabSheet;
+    ButtonBack: TButton;
+    MainMenu1: TMainMenu;
+    N1: TMenuItem;
+    N2: TMenuItem;
+    N3: TMenuItem;
+    N4: TMenuItem;
+    N5: TMenuItem;
+    N6: TMenuItem;
+    ImageBoard: TImage;
+    LabelToMeasureScreenOfUser: TLabel;
+    Panel1: TPanel;
+    procedure FormCreate(Sender: TObject);
+    procedure ButtonMenuTopClick(Sender: TObject);
+    procedure ButtonBackClick(Sender: TObject);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
+  private
+    StateOfTab: String[10];
+    MultPix, DragShiftX, DragShiftY, SizeOfFigure, ShiftOfFigure: Byte;
+    ArrOfFigures : Array Of TFigure;
+    Board: TBoard;
+    procedure OrganizeMenu();
+    procedure PlaceFiguresOnStandartPlace();
+    procedure PlaceOneFigureAndAddImage(var Figure: TFigure; FigIndex, PosX, PosY: Byte; FigType, ColorOfFig: Char; PathToImage: String);
+    procedure MoveFigureToCell(var Figure: TObject; PosX, PosY: Byte);
+    procedure KillFigureOnCell(var Figure: TObject; PosX, PosY: Byte);
+    procedure FigureMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure FigureMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+    procedure FigureMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    function CheckMoveLegalPhysically(var Figure: TObject; PosX, PosY: Byte) : Boolean;
+    procedure FigureMove(Figure: TObject; NextPosOnBoardX, NextPosOnBoardY: Byte);
+
+  public
+
+  end;
+
+const
+    TopOfBoard = 50;
+    LeftOFBoard = 30;
+    WidthOfBoard = 546;
+    WidthOfEdgePlusAdjust = 6 + 3;
+    SizeOfCell = 66;
+        // Оригинальное изображение 800*800 имеет бортики шириной в 10 и ширину
+        // клетки вместе с перегородкой 110 (перегородка 10).
+        // То есть по краям есть и перегородка (10), и бортик (10) - итого 20.
+        // Изображение в программе имеет размер 3/5 от оригинала.
+    SizeOfFigureComparedToCell = 0.8;
+
+var
+    FormMainMenu: TFormMainMenu;
+
+implementation
+
+{$R *.dfm}
+
+// *******************************
+// Checking If Move Is Legal
+
+function TFormMainMenu.CheckMoveLegalPhysically(var Figure: TObject; PosX, PosY: Byte) : Boolean;
+const
+    AllowedMovesPawn : Array [0..3] of Array[0..1] of SmallInt = ((0, 1), (0, 2), (1, 1), (-1, 1));
+
+var
+    IsLegal, LoopShouldGo: Boolean;
+    XIter, YIter, i: Byte;
+    XRelat, YRelat, CorrectorOfMinusForBlackFigures: SmallInt;
+
+begin
+    with Figure as TFigure do
+    begin
+        XRelat := PosX - PosOnBoardX;
+        YRelat := PosY - PosOnBoardY;
+        if IsWhite then
+            CorrectorOfMinusForBlackFigures := 1
+        else
+            CorrectorOfMinusForBlackFigures := -1;
+
+
+        case FFigureType of
+            'P': begin
+                IsLegal := False;
+                LoopShouldGo := True;
+                i := 0;
+                while (i < Length(AllowedMovesPawn)) and LoopShouldGo do
+                begin
+                    if ((XRelat = AllowedMovesPawn[i][0] * CorrectorOfMinusForBlackFigures) and (YRelat = AllowedMovesPawn[i][1] * CorrectorOfMinusForBlackFigures)) then
+                    begin
+                        LoopShouldGo := False;
+
+                        if (i = 0) or (i = 1) then
+                        begin
+                            if (Board[PosX][PosY].FigureName = '0') then
+                                if (i = 1) then
+                                begin
+                                    if Not HasMoved and (Board[PosX][PosY - CorrectorOfMinusForBlackFigures].FigureName = '0') then
+                                        IsLegal := True;
+                                end
+                                else
+                                    IsLegal := True;
+                        end
+                        else
+                            if ((Board[PosX][PosY].FigureName <> '0') and (Board[PosX][PosY].FigureColorIsWhite xor IsWhite)) then
+                                IsLegal := True;
+                    end;
+                    Inc(i);
+                end;
+            end;
+            'Q': begin
+                ShowMessage('Q1');
+            end;
+            else
+                ShowMessage('Ощибка в кодировке выбранной фигуры.');
+        end;
+    end;
+
+    Result := IsLegal;
+end;
+
+
+// *******************************
+// Moving Of Figures
+
+procedure TFormMainMenu.FigureMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+    With Sender as TFigure do
+    begin
+        IsOnDrag := True;
+        DragShiftX := X;
+        DragShiftY := Y;
+    end;
+end;
+
+procedure TFormMainMenu.FigureMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+begin
+    With Sender as TFigure do
+    begin
+        if IsOnDrag then
+        begin
+            Left := Left + X - DragShiftX;
+            Top := Top + Y - DragShiftY;
+        end;
+    end;
+end;
+
+procedure TFormMainMenu.FigureMouseUp(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+var
+    PosX, PosY : Byte;
+    SenderCopy: TObject;
+
+begin
+    With Sender as TFigure do
+    begin
+        IsOnDrag := False;
+
+        PosX := Round((Left / MultPix - WidthOfEdgePlusAdjust - ShiftOfFigure) / SizeOfCell + 1);
+        PosY := Round((WidthOfBoard + ShiftOfFigure - WidthOfEdgePlusAdjust - (Top / MultPix)) / SizeOfCell);
+    end;
+
+    SenderCopy := Sender;
+    if ((PosX < 9) and (PosX > 0) and (PosY < 9) and (PosY > 0) and CheckMoveLegalPhysically(SenderCopy, PosX, PosY)) then
+    begin
+        FigureMove(SenderCopy, PosX, PosY);
+    end
+    else
+        with Sender as TFigure do
+            MoveFigureToCell(SenderCopy, PosOnBoardX, PosOnBoardY);
+end;
+
+procedure TFormMainMenu.FigureMove(Figure: TObject; NextPosOnBoardX, NextPosOnBoardY: Byte);
+begin
+    (Figure as TFigure).HasMoved := True;
+    MoveFigureToCell(Figure, NextPosOnBoardX, NextPosOnBoardY);
+end;
+
+procedure TFormMainMenu.KillFigureOnCell(var Figure: TObject; PosX, PosY: Byte);
+begin
+    with Figure as TFigure do
+    begin
+          //
+    end;
+end;
+
+procedure TFormMainMenu.MoveFigureToCell(var Figure: TObject; PosX, PosY: Byte);
+begin
+    with Figure as TFigure do
+    begin
+        with Board[PosOnBoardX][PosOnBoardY] do
+            FigureName := '0';
+
+        PosOnBoardX := PosX;
+        PosOnBoardY := PosY;
+
+        with Board[PosX][PosY] do
+        begin
+            FigureColorIsWhite := IsWhite;
+            FigureName := FFigureType;
+            FigureIndex := FigureInd;
+        end;
+
+        Top := (WidthOfBoard + ShiftOfFigure - WidthOfEdgePlusAdjust - PosY * SizeOfCell) * MultPix;
+        Left := (WidthOfEdgePlusAdjust + ShiftOfFigure + (PosX - 1) * SizeOfCell) * MultPix;
+        Width := SizeOfFigure * MultPix;
+        Height := SizeOfFigure * MultPix;
+    end;
+end;
+
+procedure TFormMainMenu.PlaceFiguresOnStandartPlace();
+var
+    i: Integer;
+
+begin
+    SetLength(ArrOfFigures, 32);
+
+    PlaceOneFigureAndAddImage(ArrOfFigures[0], i, 5, 1, 'K', 'W', 'png\009-king.png');
+    PlaceOneFigureAndAddImage(ArrOfFigures[1], i, 4, 1, 'Q', 'W', 'png\007-queen.png');
+    for i := 8 to 15 do
+        PlaceOneFigureAndAddImage(ArrOfFigures[i], i, i - 7, 2, 'P', 'W', 'png\008-pawn.png');
+
+    for i := 24 to 31 do
+        PlaceOneFigureAndAddImage(ArrOfFigures[i], i, i - 23, 7, 'P', 'B', 'png\008-pawn_b.png');
+end;
+
+procedure TFormMainMenu.PlaceOneFigureAndAddImage(var Figure: TFigure; FigIndex, PosX, PosY: Byte;
+    FigType, ColorOfFig: Char; PathToImage: String);
+begin
+    Figure := TFigure.Create();
+    with Figure do
+    begin
+        FFigureType := FigType;
+        PosOnBoardX := PosX;
+        PosOnBoardY := PosY;
+        Picture.LoadFromFile(PathToImage);
+        Parent := Panel1;
+        IsWhite := ColorOfFig = 'W';
+        FigureInd := FigIndex;
+
+        Top := (WidthOfBoard + ShiftOfFigure - WidthOfEdgePlusAdjust - PosY * SizeOfCell) * MultPix;
+        Left := (WidthOfEdgePlusAdjust + ShiftOfFigure + (PosX - 1) * SizeOfCell) * MultPix;
+        Width := SizeOfFigure * MultPix;
+        Height := SizeOfFigure * MultPix;
+
+        with Board[PosX][PosY] do
+        begin
+            FigureColorIsWhite := IsWhite;
+            FigureName := FFigureType;
+            FigureIndex := FigIndex;
+        end;
+
+        OnMouseDown := FigureMouseDown;
+        OnMouseMove := FigureMouseMove;
+        OnMouseUp := FigureMouseUp;
+    end;
+end;
+
+
+
+// *******************************
+// OnFormCreate
+
+procedure TFormMainMenu.FormCreate(Sender: TObject);
+var
+    i, j: Integer;
+
+begin
+    StateOfTab := 'MainMenu';
+    PageControl1.ActivePageIndex := 0;
+
+    SizeOfFigure := Round(SizeOfCell * SizeOfFigureComparedToCell);
+    ShiftOfFigure := Round(SizeOfCell * (1 - SizeOfFigureComparedToCell) / 2);
+
+    MultPix := Round(LabelToMeasureScreenOfUser.Width / 100);
+        // Это нужно, так как на моём компе не родная ОС, из-за чего формы,
+        // написанные на Делфи, неверно считают пиксели.
+        // На моём компе все координаты будут умножаться на 2.
+
+    with ImageBackGround do
+    begin
+        Left := 0;
+        Top := - Round(FormMainMenu.ClientHeight / 4);
+        Width := FormMainMenu.ClientWidth;
+        Height := Round(FormMainMenu.ClientHeight * 16 / 9);
+    end;
+
+    With Panel1 do
+    begin
+        Top := TopOfBoard * MultPix;
+        Left := LeftOfBoard * MultPix;
+        Width := WidthOfBoard * MultPix;
+        Height := WidthOfBoard * MultPix;
+    end;
+
+    With ImageBoard do
+    begin
+        Top := 0;
+        Left := 0;
+        Width := WidthOfBoard * MultPix;
+        Height := WidthOfBoard * MultPix;
+    end;
+
+    for i := 1 to 8 do
+        for j := 1 to 8 do
+            Board[i][j].FigureName := '0';
+end;
+
+
+// *******************************
+// Menu
+
+procedure TFormMainMenu.ButtonBackClick(Sender: TObject);
+var
+    WorkIsNotDone: Boolean;
+begin
+    WorkIsNotDone := True;
+
+    if (StateOfTab = 'NewGame') then
+    begin
+        StateOfTab := 'MainMenu';
+        OrganizeMenu();
+        WorkIsNotDone := False;
+    end;
+end;
+
+procedure TFormMainMenu.ButtonMenuTopClick(Sender: TObject);
+var
+    WorkIsNotDone: Boolean;
+
+begin
+    WorkIsNotDone := True;
+
+    if (StateOfTab = 'MainMenu') then
+    begin
+        StateOfTab := 'NewGame';
+        OrganizeMenu();
+        WorkIsNotDone := False;
+    end;
+
+    if WorkIsNotDone and (StateOfTab = 'NewGame') then
+    begin
+        PageControl1.ActivePageIndex := 1;
+        PlaceFiguresOnStandartPlace();
+        WorkIsNotDone := False;
+    end;
+end;
+
+procedure TFormMainMenu.FormKeyPress(Sender: TObject; var Key: Char);
+const
+    KeysForBack = [#8, #27];
+begin
+    if (PageControl1.ActivePageIndex = 0) and (Key in KeysForBack) and
+        ButtonBack.Visible then
+        ButtonBackClick(Self);
+end;
+
+procedure TFormMainMenu.OrganizeMenu();
+var
+    IsNotOrganized: Boolean;
+
+begin
+    IsNotOrganized := True;
+
+    if (StateOfTab = 'NewGame') then
+    begin
+        LabelMenuHead.Caption := 'Новая Игра';
+        ButtonMenuTop.Caption := '2 Игрока';
+        ButtonMenuMid.Caption := 'Против ИИ';
+        ButtonMenuDown.Caption := 'Онлайн';
+        ButtonBack.Visible := True;
+    end;
+
+    if (IsNotOrganized and (StateOfTab = 'MainMenu')) then
+    begin
+        LabelMenuHead.Caption := 'ГЛАВНОЕ МЕНЮ';
+        ButtonMenuTop.Caption := 'Новая Игра';
+        ButtonMenuMid.Caption := 'Загрузить игру';
+        ButtonMenuDown.Caption := 'Тренировка';
+        ButtonBack.Visible := False;
+    end;
+end;
+
+
+// *******************************
+// Other
+
+constructor TFigure.Create();
+begin
+     inherited Create(FormMainMenu);
+     Proportional := True;
+     IsAlive := True;
+     HasMoved := False;
+end;
+
+end.

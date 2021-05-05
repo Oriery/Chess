@@ -1,0 +1,2426 @@
+unit Chess_Main_Form;
+
+interface
+
+uses
+    Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
+    System.Classes, Vcl.Graphics,
+    Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls,
+    Vcl.Imaging.jpeg, Vcl.ActnMan, Vcl.ActnColorMaps, Vcl.ExtDlgs, Vcl.ComCtrls,
+    Vcl.Imaging.pngimage, Vcl.Menus, System.UITypes, System.RegularExpressions, Math;
+
+type
+    TArrStr = Array of String;
+
+    TFigure = Class(TImage)
+    public
+        FFigureType: Char;
+        FFigureInd, FPosOnBoardX, FPosOnBoardY: Byte;
+        FIsWhite, FIsOnDrag: Boolean;
+        FHasMoved, FPsevdoKilled: Boolean;
+    published
+        constructor Create();
+    End;
+
+    TCell = Record
+        CellFigureName: Char; // '0'(ничего), K, Q, R, N, B, P
+        CellFigureColorIsWhite: Boolean;
+        CellFigureIndex: Byte;
+    End;
+
+    TBoard = Array [1 .. 8, 1 .. 8] of TCell;
+
+    TWhoWon = (White, Black, Draw);
+    THowGameEnded = (Mate, Resign, ByTime, Stalemate, DrawByAgreement,
+      DrawByNotEnoughFigures, DrawBy3SamePosition,
+      DrawBy50MovesWithoutPawnMovedOrFigureCaptured, DrawOnTime);
+
+
+
+    TCoord = Record
+        Top, Left: SmallInt;
+    End;
+
+    TCellForReplay = Record
+        CellFigureName: Char;
+        CellFigureColorIsWhite, CellFigureHasMoved: Boolean;
+    End;
+
+
+    TGame = Record
+        AllBoards: Array of Array [0 .. 1] of Array [1 .. 8, 1 .. 8]
+            of TCellForReplay; // move - w/b - row - file
+        GameEnded: Boolean;
+        TimeRemainingW, TimeRemainingB: SmallInt;
+    End;
+
+    TFormChessMain = class(TForm)
+        LabelMenuHead: TLabel;
+    ButtonMenuNewGame: TButton;
+        ImageBackGround: TImage;
+    ButtonMenuOpenGame: TButton;
+        PageControl1: TPageControl;
+        TabSheet1: TTabSheet;
+        TabSheet2: TTabSheet;
+        MainMenu1: TMainMenu;
+        NFile: TMenuItem;
+        NOpen: TMenuItem;
+        NSaveAs: TMenuItem;
+        NAbout: TMenuItem;
+        NAuthor: TMenuItem;
+        ImageBoard: TImage;
+        LabelToMeasureScreenOfUser: TLabel;
+        PanelForBoard: TPanel;
+        ButtonExit: TButton;
+        PanelChoiceOfTransPawnForBlack: TPanel;
+        ImageBN: TImage;
+        ImageBB: TImage;
+        ImageBR: TImage;
+        ImageBQ: TImage;
+        PanelChoiceOfTransPawnForWhite: TPanel;
+        ImageWN: TImage;
+        ImageWB: TImage;
+        ImageWR: TImage;
+        ImageWQ: TImage;
+        TimerForAnimation: TTimer;
+        TabSheet3: TTabSheet;
+        PanelGameEnded: TPanel;
+        LabelWhoWon: TLabel;
+        ImageWhoWon: TImage;
+        LabelHowGameEnded: TLabel;
+        ListBoxNotationW: TListBox;
+        ListBoxNotationB: TListBox;
+        ListBoxNotationNum: TListBox;
+        PanelForNotation: TPanel;
+        ButtonReplay: TButton;
+        PanelForReplay: TPanel;
+        ImageReplayStart: TImage;
+        ImageReplayPrev: TImage;
+        ImageReplayNext: TImage;
+        ImageReplayEnd: TImage;
+        ButtonResign: TButton;
+        PanelTimer: TPanel;
+        ButtonDraw: TButton;
+        ImageBP: TImage;
+        ImageWP: TImage;
+        ImageWK: TImage;
+        ImageBK: TImage;
+        ImageBlack: TImage;
+        ImageWhite: TImage;
+        ImageDraw: TImage;
+        ImageTimer: TImage;
+        ScrollBox1: TScrollBox;
+        LabelTimeW: TLabel;
+        LabelTimeB: TLabel;
+        TimerForTimer: TTimer;
+        ImagePauseAndStartTimer: TImage;
+        LabelPause: TLabel;
+        ImagePause: TImage;
+        BalloonHint1: TBalloonHint;
+        SaveDialog1: TSaveDialog;
+        OpenDialog1: TOpenDialog;
+    ButtonSaveGame: TButton;
+    ButtonStartNewGame: TButton;
+        procedure FormCreate(Sender: TObject);
+        procedure ButtonMenuNewGameClick(Sender: TObject);
+        procedure FormKeyPress(Sender: TObject; var Key: Char);
+        procedure ButtonExitClick(Sender: TObject);
+        procedure NAuthorClick(Sender: TObject);
+        procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+        function MultPixels(PixQuant: Integer): Integer;
+        procedure ImageWNClick(Sender: TObject);
+        procedure ImageWBClick(Sender: TObject);
+        procedure ImageWRClick(Sender: TObject);
+        procedure ImageWQClick(Sender: TObject);
+        procedure ImageBNClick(Sender: TObject);
+        procedure ImageBBClick(Sender: TObject);
+        procedure ImageBRClick(Sender: TObject);
+        procedure ImageBQClick(Sender: TObject);
+        procedure FigureMouseEnter(Sender: TObject);
+        procedure FigureMouseLeave(Sender: TObject);
+        procedure TimerForAnimationTimer(Sender: TObject);
+        procedure ButtonReplayClick(Sender: TObject);
+        procedure ListBoxNotationExit(Sender: TObject);
+        procedure ListBoxNotationEnter(Sender: TObject);
+        procedure FormKeyDown(Sender: TObject; var Key: Word;
+          Shift: TShiftState);
+        procedure ImageReplayNextClick(Sender: TObject);
+        procedure ImageReplayStartClick(Sender: TObject);
+        procedure ImageReplayPrevClick(Sender: TObject);
+        procedure ImageReplayEndClick(Sender: TObject);
+        procedure AfterPawnTranformed();
+        procedure ButtonDrawClick(Sender: TObject);
+        procedure ButtonResignClick(Sender: TObject);
+        procedure TimerForTimerTimer(Sender: TObject);
+        procedure ImagePauseAndStartTimerClick(Sender: TObject);
+        procedure ImageBoardClick(Sender: TObject);
+        procedure LabelPauseClick(Sender: TObject);
+        procedure NSaveAsClick(Sender: TObject);
+        procedure NOpenClick(Sender: TObject);
+        procedure ButtonMenuOpenGameClick(Sender: TObject);
+    procedure ButtonSaveGameClick(Sender: TObject);
+    procedure ButtonStartNewGameClick(Sender: TObject);
+
+    public
+        SizeOfFigure, ShiftOfFigure: Byte;
+        DragShiftX, DragShiftY, ItemIndexW, ItemIndexB: SmallInt;
+        ArrOfFigures: Array Of TFigure;
+        BoardReal: TBoard;
+        GameIsSaved, NowIsTakingOnAisle, NowIsCastling, NowCheck, WhiteIsToMove: Boolean;
+        LastMove: String[4];
+        MultPix: Single;
+        Game: TGame;
+
+        BufferFor1Move: String;  //Notation
+
+        NowAnimating: Boolean;
+        ImgToMoveWithAnimationGlobal: TImage;
+        XPS_AnimationOfImg, YPS_AnimationOfImg, NeedTop_AnimationOfImg,
+          NeedLeft_AnimationOfImg: SmallInt;
+
+        procedure PlaceFiguresOnStandartPlace();
+        procedure CreateOneFigure(var Figure: TFigure;
+          FigIndex, PosX, PosY: Byte; FigType, ColorOfFig: Char; HasMoved: Boolean = False);
+        procedure MoveFigureToCell(var Board: TBoard; Figure: TFigure;
+            PosX, PosY: Byte; FigureIsReal: Boolean = True);
+        procedure KillFigureOnCell(PosX, PosY: Byte;
+          ShouldWriteNotation: Boolean = True);
+        procedure FigureMouseDown(Sender: TObject; Button: TMouseButton;
+          Shift: TShiftState; X, Y: Integer);
+        procedure FigureMouseMove(Sender: TObject; Shift: TShiftState;
+          X, Y: Integer);
+        procedure FigureMouseUp(Sender: TObject; Button: TMouseButton;
+          Shift: TShiftState; X, Y: Integer);
+        function CheckMoveLegal(Figure: TFigure; PosX, PosY: Byte): Boolean;
+        function CheckMoveLegalPhysically(Board: TBoard; Figure: TFigure;
+          PosX, PosY: Byte): Boolean;
+        procedure FigureMoveAndKillAnother(Figure: TFigure;
+          NextPosOnBoardX, NextPosOnBoardY: Byte);
+        procedure MakeAMove(Figure: TFigure;
+          NextPosOnBoardX, NextPosOnBoardY: Byte);
+        procedure ResetChessboardToStandart();
+        function CheckMovePawnLegalPhysically(Board: TBoard; Figure: TFigure;
+          PosX, PosY: Byte; XRelat, YRelat: SmallInt): Boolean;
+        function CheckMoveQueenLegalPhysically(Board: TBoard; Figure: TFigure;
+          PosX, PosY: Byte; XRelat, YRelat: SmallInt): Boolean;
+        function CheckMoveRookLegalPhysically(Board: TBoard; Figure: TFigure;
+          PosX, PosY: Byte; XRelat, YRelat: SmallInt): Boolean;
+        function CheckMoveBishopLegalPhysically(Board: TBoard; Figure: TFigure;
+          PosX, PosY: Byte; XRelat, YRelat: SmallInt): Boolean;
+        function CheckMoveKnightLegalPhysically(Board: TBoard; Figure: TFigure;
+          PosX, PosY: Byte; XRelat, YRelat: SmallInt): Boolean;
+        function CheckMoveKingLegalPhysically(Board: TBoard; Figure: TFigure;
+          PosX, PosY: Byte; XRelat, YRelat: SmallInt): Boolean;
+        procedure PawnTransformation(Figure: TFigure);
+        procedure EndPawnTransformation(NewTypeOfFigure: Char);
+        function CheckIfCellIsNotAttacked(Board: TBoard; CoorX, CoorY: Byte;
+          AttackedByWhiteFigures: Boolean): Boolean;
+        function CheckMoveLegalBecauseOfKillingKing(Figure: TFigure;
+          NextX, NextY: Byte): Boolean;
+        function FindKing(KingIsWhite: Boolean): TFigure;
+        procedure CheckIfCheck();
+        procedure CheckIfCheckOrMateOrStaleMate();
+        procedure MoveFigureWithAnimation(ImgToMoveWithAnimation: TFigure;
+          NeedTop, NeedLeft: SmallInt; AnimationTime: Single = 0.1);
+        procedure ScaleFigure(Figure: TFigure; Scale: Single);
+        function CountCoordinatesOfFigure(PosX, PosY: Byte): TCoord;
+        function CheckIfThereAreAvailableMoves(): Boolean;
+        procedure DoAfterGameEnded(WhoWon: TWhoWon;
+          HowGameEnded: THowGameEnded);
+        procedure ShowWhoWon(WhoWon: TWhoWon; HowGameEnded: THowGameEnded);
+        procedure WriteOneMoveOfGame();
+        procedure ShowReplay();
+        procedure CorrectLengthOfScrollboxForNotation();
+        procedure ShowTimeOnTimer(IsWhite: Boolean);
+        procedure ClearChessboard();
+        procedure DoAfterOpenedGameFromFile();
+        procedure ClickListBoxToKillBug();
+
+    end;
+
+const
+    TopOfBoard = 50;
+    LeftOFBoard = 30;
+    WidthOfBoard = 546;
+    WidthOfEdgePlusAdjust = 6 + 3;
+    SizeOfCell = 66;
+    // Оригинальное изображение 800*800 имеет бортики шириной в 10 и ширину
+    // клетки вместе с перегородкой 110 (перегородка 10).
+    // То есть по краям есть и перегородка (10), и бортик (10) - итого 20.
+    // Изображение в программе имеет размер 3/5 от оригинала.
+    SizeOfFigureComparedToCell = 0.8;
+    ScaleWhileFigureOnDrag = 1.08;
+    DefaultTimeOnTimer = 900;
+    DefaultAddingOnTimer = 10;
+
+var
+    FormChessMain: TFormChessMain;
+
+implementation
+
+{$R *.dfm}
+function FindRegEx(SInput, StrRegEx: String; StrIfNothingFound: String = '')
+  : TArrStr; forward;
+
+
+// *******************************
+// Chess Timer
+
+procedure TFormChessMain.TimerForTimerTimer(Sender: TObject);
+var
+    TimeRemaining: SmallInt;
+
+begin
+    if not Game.GameEnded then
+    begin
+        if WhiteIsToMove then
+            TimeRemaining := Game.TimeRemainingW
+        else
+            TimeRemaining := Game.TimeRemainingB;
+
+        if WhiteIsToMove then
+            Dec(Game.TimeRemainingW)
+        else
+            Dec(Game.TimeRemainingB);
+
+        ShowTimeOnTimer(WhiteIsToMove);
+
+        Dec(TimeRemaining);
+        if TimeRemaining < 1 then
+            if WhiteIsToMove then
+                DoAfterGameEnded(Black, ByTime)
+            else
+                DoAfterGameEnded(White, ByTime);
+    end;
+end;
+
+procedure TFormChessMain.ShowTimeOnTimer(IsWhite: Boolean);
+var
+    TimeRemaining: SmallInt;
+    StrTime: String;
+
+begin
+    StrTime := '';
+
+    if IsWhite then
+        TimeRemaining := Game.TimeRemainingW
+    else
+        TimeRemaining := Game.TimeRemainingB;
+
+    // hours
+    if TimeRemaining div 3600 > 0 then
+    begin
+        if TimeRemaining div 3600 < 10 then
+            StrTime := '0';
+
+        StrTime := StrTime + IntToStr(TimeRemaining div 3600) + ':';
+        TimeRemaining := TimeRemaining mod 3600;
+    end;
+
+    // minutes
+    if TimeRemaining div 60 < 10 then
+        StrTime := StrTime + '0';
+
+    StrTime := StrTime + IntToStr(TimeRemaining div 60) + ':';
+    TimeRemaining := TimeRemaining mod 60;
+
+    // seconds
+    if TimeRemaining < 10 then
+        StrTime := StrTime + '0';
+
+    StrTime := StrTime + IntToStr(TimeRemaining);
+
+    if IsWhite then
+        LabelTimeW.Caption := StrTime
+    else
+        LabelTimeB.Caption := StrTime;
+end;
+
+procedure TFormChessMain.ImagePauseAndStartTimerClick(Sender: TObject);
+begin
+    with LabelPause do
+        if Parent <> PanelForBoard then
+        begin
+            Parent := PanelForBoard;
+            Top := Round(PanelForBoard.Width / 2 - Height / 2);
+            Left := Round(PanelForBoard.Width / 2 - Width / 2);
+            BringToFront();
+        end;
+
+    if TimerForTimer.Enabled then
+    begin
+        ImagePauseAndStartTimer.Picture := ImageReplayNext.Picture;
+        LabelPause.Visible := True;
+    end
+    else
+    begin
+        ImagePauseAndStartTimer.Picture := ImagePause.Picture;
+        LabelPause.Visible := False;
+    end;
+
+    TimerForTimer.Enabled := not TimerForTimer.Enabled;
+end;
+
+// *******************************
+// Replay
+
+procedure TFormChessMain.ButtonReplayClick(Sender: TObject);
+begin
+    PanelGameEnded.Visible := False;
+    PanelForReplay.Visible := True;
+    ImagePauseAndStartTimer.Visible := False;
+    if ListBoxNotationW.Count > ListBoxNotationB.Count then
+    begin
+        ListBoxNotationW.ItemIndex := ListBoxNotationW.Count - 1;
+        ItemIndexW := ListBoxNotationW.ItemIndex;
+    end
+    else
+    begin
+        ListBoxNotationB.ItemIndex := ListBoxNotationB.Count - 1;
+        ItemIndexB := ListBoxNotationB.ItemIndex;
+    end;
+end;
+
+procedure TFormChessMain.LabelPauseClick(Sender: TObject);
+begin
+    if LabelPause.Visible then
+    begin
+        ImagePauseAndStartTimer.Picture := ImagePause.Picture;
+        LabelPause.Visible := False;
+        TimerForTimer.Enabled := True;
+    end;
+end;
+
+procedure TFormChessMain.ListBoxNotationEnter(Sender: TObject);
+begin
+    (Sender as TListBox).Enabled := False;
+end;
+
+procedure TFormChessMain.ListBoxNotationExit(Sender: TObject);
+begin
+    (Sender as TListBox).Enabled := True;
+end;
+
+procedure TFormChessMain.ImageReplayEndClick(Sender: TObject);
+begin
+    if ListBoxNotationW.Count > ListBoxNotationB.Count then
+    begin
+        if ItemIndexW <> ListBoxNotationW.Count - 1 then
+        begin
+            ListBoxNotationW.ItemIndex := ListBoxNotationW.Count - 1;
+            ListBoxNotationB.ItemIndex := -1;
+            ItemIndexW := ListBoxNotationW.ItemIndex;
+            ItemIndexB := ListBoxNotationB.ItemIndex;
+
+            ShowReplay();
+        end;
+    end
+    else
+    begin
+        if ItemIndexB <> ListBoxNotationB.Count - 1 then
+        begin
+            ListBoxNotationB.ItemIndex := ListBoxNotationB.Count - 1;
+            ListBoxNotationW.ItemIndex := -1;
+            ItemIndexW := ListBoxNotationW.ItemIndex;
+            ItemIndexB := ListBoxNotationB.ItemIndex;
+
+            ShowReplay();
+        end;
+    end;
+end;
+
+procedure TFormChessMain.ImageReplayStartClick(Sender: TObject);
+begin
+    if ItemIndexW <> 0 then
+    begin
+        ListBoxNotationW.ItemIndex := 0;
+        ListBoxNotationB.ItemIndex := -1;
+
+        ItemIndexW := ListBoxNotationW.ItemIndex;
+        ItemIndexB := ListBoxNotationB.ItemIndex;
+
+        ShowReplay();
+    end;
+end;
+
+procedure TFormChessMain.ImageReplayNextClick(Sender: TObject);
+begin
+    if ItemIndexW > -1 then
+    begin
+        if ListBoxNotationB.Count > ItemIndexW then
+        begin
+            ListBoxNotationW.ItemIndex := -1;
+            ListBoxNotationB.ItemIndex := ItemIndexW;
+            ItemIndexW := ListBoxNotationW.ItemIndex;
+            ItemIndexB := ListBoxNotationB.ItemIndex;
+
+            ShowReplay();
+        end;
+    end
+    else
+        if ListBoxNotationW.Count > ItemIndexB + 1 then
+        begin
+            ListBoxNotationW.ItemIndex := ItemIndexB + 1;
+            ListBoxNotationB.ItemIndex := -1;
+            ItemIndexW := ListBoxNotationW.ItemIndex;
+            ItemIndexB := ListBoxNotationB.ItemIndex;
+
+            ShowReplay();
+        end;
+end;
+
+procedure TFormChessMain.ImageReplayPrevClick(Sender: TObject);
+begin
+    if ItemIndexW > -1 then
+    begin
+        if ItemIndexW > 0 then
+        begin
+            ListBoxNotationW.ItemIndex := -1;
+            ListBoxNotationB.ItemIndex := ItemIndexW - 1;
+            ItemIndexW := ListBoxNotationW.ItemIndex;
+            ItemIndexB := ListBoxNotationB.ItemIndex;
+
+            ShowReplay();
+        end;
+    end
+    else
+    begin
+        ListBoxNotationW.ItemIndex := ItemIndexB;
+        ListBoxNotationB.ItemIndex := -1;
+        ItemIndexW := ListBoxNotationW.ItemIndex;
+        ItemIndexB := ListBoxNotationB.ItemIndex;
+
+        ShowReplay();
+    end;
+end;
+
+procedure TFormChessMain.ShowReplay();
+var
+    BoardTemp: Array [1 .. 8, 1 .. 8] of TCellForReplay;
+    i, j, k: Byte;
+    EmptySpaceInArrayNotFound: Boolean;
+    ColorOfFigure: Char;
+
+begin
+    // Copy board
+    for i := 1 to 8 do
+        for j := 1 to 8 do
+        begin
+            with Game.AllBoards
+              [ItemIndexW + ItemIndexB + 1][Ord(ItemIndexW = -1)][i][j] do
+            begin
+                BoardTemp[i][j].CellFigureName := CellFigureName;
+                BoardTemp[i][j].CellFigureColorIsWhite := CellFigureColorIsWhite;
+                BoardTemp[i][j].CellFigureHasMoved := CellFigureHasMoved;
+            end;
+        end;
+
+    // Delete what should be deleted
+    for i := 1 to 8 do
+        for j := 1 to 8 do
+            if (BoardReal[i][j].CellFigureName <> '0') and
+              ((BoardTemp[i][j].CellFigureName <> BoardReal[i][j]
+              .CellFigureName) or (BoardTemp[i][j].CellFigureColorIsWhite <>
+              BoardReal[i][j].CellFigureColorIsWhite)
+              or (BoardTemp[i][j].CellFigureHasMoved <>
+              ArrOfFigures[BoardReal[i][j].CellFigureIndex].FHasMoved)) then
+            begin
+                KillFigureOnCell(i, j, False);
+            end;
+
+    // Create what should be created
+    for i := 1 to 8 do
+        for j := 1 to 8 do
+            if (BoardTemp[i][j].CellFigureName <> BoardReal[i][j].CellFigureName)
+            then
+            begin
+                k := 0;
+                EmptySpaceInArrayNotFound := True;
+                while (k < Length(ArrOfFigures)) and
+                  EmptySpaceInArrayNotFound do
+                begin
+                    if ArrOfFigures[k] <> nil then
+                        Inc(k)
+                    else
+                        EmptySpaceInArrayNotFound := False;
+                end;
+
+                if BoardTemp[i][j].CellFigureColorIsWhite then
+                    ColorOfFigure := 'W'
+                else
+                    ColorOfFigure := 'B';
+
+                CreateOneFigure(ArrOfFigures[k], k, i, j,
+                  BoardTemp[i][j].CellFigureName, ColorOfFigure, BoardTemp[i][j].CellFigureHasMoved);
+            end;
+end;
+
+// *******************************
+// Game Write, Save, Load
+
+procedure TFormChessMain.WriteOneMoveOfGame();
+var
+    i, j: Byte;
+
+begin
+    if not WhiteIsToMove then
+    begin
+        SetLength(Game.AllBoards, Length(Game.AllBoards) + 1);
+
+        // обнуление чёрных
+        for i := 1 to 8 do
+            for j := 1 to 8 do
+            begin
+                with Game.AllBoards[High(Game.AllBoards)][1][i][j] do
+                begin
+                    CellFigureName := '0';
+                    CellFigureColorIsWhite := False;
+                    CellFigureHasMoved := False;
+                end;
+            end;
+    end;
+
+    for i := 1 to 8 do
+        for j := 1 to 8 do
+        begin
+            with Game.AllBoards[High(Game.AllBoards)][Ord(WhiteIsToMove)][i][j] do
+            begin
+                CellFigureName := BoardReal[i][j].CellFigureName;
+                if CellFigureName <> '0' then
+                begin
+                    CellFigureColorIsWhite := BoardReal[i][j].CellFigureColorIsWhite;
+                    CellFigureHasMoved := ArrOfFigures[BoardReal[i][j].CellFigureIndex].FHasMoved;
+                end
+                else
+                begin
+                    CellFigureColorIsWhite := False;
+                    CellFigureHasMoved := False;
+                end;
+            end;
+        end;
+end;
+
+
+procedure TFormChessMain.NOpenClick(Sender: TObject);
+const
+    ErrorDuringInputOccured = 'Возникла ошибка при открытии файла.' + #10#13 +
+                'Пожалуйста, выберите файл формата (.txt) с ' +
+                'корректными данными.';
+
+var
+    FileInput : TextFile;
+    PathToFile, String1, RegEx: String;
+    i, j, k: Integer;
+    WhiteIsToMoveTemp, IsCorrect, SaidNoSaving: Boolean;
+
+begin
+    IsCorrect := True;
+    SaidNoSaving := False;
+
+    if not GameIsSaved then
+        if MessageDlg('Вы хотите сохранить текущую партию?' +
+        #10#13 + 'Иначе после открытия файла текущая партия будет удалена.',
+        mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+            NSaveAsClick(Self)
+        else
+            SaidNoSaving := True;
+
+    if (GameIsSaved or SaidNoSaving or (MessageDlg('Вы уверены, что хотите открыть другую партию?' + #10#13 +
+        'Текущая партия будет удалена.', mtConfirmation, [mbYes, mbCancel], 0) = mrYes))
+        and OpenDialog1.Execute then
+    begin
+        PathToFile := OpenDialog1.FileName;
+
+        ResetChessboardToStandart();
+
+        try
+            AssignFile(FileInput, PathToFile);
+            Reset(FileInput);
+
+            Readln(FileInput, String1);
+            RegEx := FindRegEx(String1, '\bGame ended:\s*[01]\b')[0];
+            if RegEx <> '' then
+                Game.GameEnded := FindRegEx(RegEx, '[01]')[0] = '1'
+            else
+                IsCorrect := False;
+
+            if IsCorrect then
+            begin
+                Readln(FileInput, String1);
+                RegEx := FindRegEx(String1, '\bTime remaining white:\s*\d{1,5}\b')[0];
+                if RegEx <> '' then
+                begin
+                    Game.TimeRemainingW := StrToInt(FindRegEx(RegEx, '\d+')[0]);
+                    ShowTimeOnTimer(True);
+                end
+                else
+                    IsCorrect := False;
+            end;
+
+            if IsCorrect then
+            begin
+                Readln(FileInput, String1);
+                RegEx := FindRegEx(String1, '\bTime remaining black:\s*\d{1,5}\b')[0];
+                if RegEx <> '' then
+                begin
+                    Game.TimeRemainingB := StrToInt(FindRegEx(RegEx, '\d+')[0]);
+                    ShowTimeOnTimer(False);
+                end
+                else
+                    IsCorrect := False;
+            end;
+
+            if IsCorrect then
+            begin
+                Readln(FileInput, String1);
+
+                // import of notation
+                WhiteIsToMove := True;
+                Readln(FileInput, String1);
+                repeat
+                    if WhiteIsToMove then
+                    begin
+                        ListBoxNotationW.Items.Add(String1);
+                        ListBoxNotationNum.Items.Add(IntToStr(ListBoxNotationW.Count) + '.');
+                        CorrectLengthOfScrollboxForNotation();
+                    end
+                    else
+                        ListBoxNotationB.Items.Add(String1);
+
+                    WhiteIsToMove := not WhiteIsToMove;
+
+                    Readln(FileInput, String1);
+                until String1.StartsWith('NOTATION_END', True) or EoF(FileInput);
+
+                if EoF(FileInput) then
+                    IsCorrect := False;
+            end;
+
+            if IsCorrect then
+            begin
+                // import of boards
+                SetLength(Game.AllBoards, 0);
+                WhiteIsToMoveTemp := True;
+                Readln(FileInput, String1);
+                while (String1 <> 'BOARDS_END') and not EoF(FileInput) and IsCorrect do
+                begin
+                    if WhiteIsToMoveTemp then
+                    begin
+                        SetLength(Game.AllBoards, Length(Game.AllBoards) + 1);
+
+                        // обнуление чёрных
+                        for i := 1 to 8 do
+                            for j := 1 to 8 do
+                            begin
+                                with Game.AllBoards[High(Game.AllBoards)][1][i][j] do
+                                begin
+                                    CellFigureName := '0';
+                                    CellFigureColorIsWhite := False;
+                                end;
+                            end;
+                    end;
+
+                    if FindRegEx(String1, '\b([0PKQNBR][01][01]){64}\b')[0] <> '' then
+                    begin
+                        k := 1;
+                        while k < Length(String1) do
+                        begin
+                            for i := 1 to 8 do
+                                for j := 1 to 8 do
+                                begin
+                                    with Game.AllBoards[High(Game.AllBoards)][Ord(not WhiteIsToMoveTemp)][i][j] do
+                                    begin
+                                        CellFigureName := String1[k];
+                                        CellFigureColorIsWhite := String1[k + 1] = '1';
+                                        CellFigureHasMoved := String1[k + 2] = '1';
+                                    end;
+                                    k := k + 3;
+                                end;
+                        end;
+
+                        WhiteIsToMoveTemp := not WhiteIsToMoveTemp;
+                        Readln(FileInput, String1);
+                    end
+                    else
+                    begin
+                        IsCorrect := False;
+                        ShowMessage(String1);
+                    end;
+                end;
+                if EoF(FileInput) then
+                    IsCorrect := False;
+            end;
+
+            if IsCorrect then
+            begin
+                Readln(FileInput, String1);
+                RegEx := FindRegEx(String1, '\b[1-8]{4}\b')[0];
+
+                if RegEx <> '' then
+                    LastMove := String1
+                else
+                    IsCorrect := False;
+
+                if IsCorrect then
+                begin
+                    DoAfterOpenedGameFromFile();
+                    if PageControl1.ActivePageIndex <> 1 then
+                        PageControl1.ActivePageIndex := 1;
+                end;
+
+                CloseFile(FileInput);
+            end;
+        except
+            IsCorrect := False;
+        end;
+
+        if not IsCorrect then
+        begin
+            ShowMessage(ErrorDuringInputOccured);
+            ResetChessboardToStandart();
+        end;
+    end;
+end;
+
+procedure TFormChessMain.DoAfterOpenedGameFromFile();
+begin
+    if ListBoxNotationW.Count > ListBoxNotationB.Count then
+    begin
+        ItemIndexW := ListBoxNotationW.Count - 1;
+        ItemIndexB := -1;
+    end
+    else
+    begin
+        ItemIndexB := ListBoxNotationB.Count - 1;
+        ItemIndexW := -1;
+    end;
+
+    ShowReplay();
+
+    if not Game.GameEnded then
+    begin
+        TimerForTimer.Enabled := True;
+        ImagePauseAndStartTimer.Picture := ImagePause.Picture;
+        ImagePauseAndStartTimer.Visible := True;
+        ItemIndexW := -1;
+        ItemIndexB := -1;
+        ButtonResign.Enabled := True;
+        ButtonDraw.Enabled := True;
+    end
+    else
+    begin
+        TimerForTimer.Enabled := False;
+        ImagePauseAndStartTimer.Visible := False;
+        ButtonResign.Enabled := False;
+        ButtonDraw.Enabled := False;
+        ButtonReplayClick(Self);
+    end;
+
+    PanelChoiceOfTransPawnForBlack.Visible := False;
+    PanelChoiceOfTransPawnForWhite.Visible := False;
+    PanelGameEnded.Visible := False;
+
+    ClickListBoxToKillBug();
+end;
+
+procedure TFormChessMain.ClickListBoxToKillBug();
+var
+    CursorClipArea: TRect;
+    MousePoint1, MousePoint2: TPoint;
+
+begin
+    GetCursorPos(MousePoint1);
+
+    with ListBoxNotationW do
+    begin
+        CursorClipArea.TopLeft := ClientToScreen(ItemRect(ListBoxNotationW.Count - 1).TopLeft);
+        CursorClipArea.BottomRight := ClientToScreen(ItemRect(ListBoxNotationW.Count - 1).BottomRight);
+    end;
+
+    Winapi.Windows.ClipCursor(@CursorClipArea);
+
+    GetCursorPos(MousePoint2);
+    mouse_event(MOUSEEVENTF_LEFTDOWN,MousePoint2.X,MousePoint2.Y,0,0);
+    mouse_event(MOUSEEVENTF_LEFTUP,MousePoint2.X,MousePoint2.Y,0,0);
+
+    Winapi.Windows.ClipCursor(nil);
+    SetCursorPos(MousePoint1.X, MousePoint1.Y);
+end;
+
+procedure TFormChessMain.NSaveAsClick(Sender: TObject);
+var
+    FileOutput : TextFile;
+    StrFilePath: String;
+    ShouldNotRepeat, TimerGoes: Boolean;
+    Point: TPoint;
+    i, j ,k, ii: Integer;
+
+begin
+    TimerGoes := TimerForTimer.Enabled;
+    TimerForTimer.Enabled := False;
+
+    try
+        repeat
+            ShouldNotRepeat := True;
+            SaveDialog1.FileName := 'Chess game ' + DateTimeToStr(Date) + ' ' + TimeToStr(Time).Replace(':', '-', [rfReplaceAll]) + '.txt';
+
+            if SaveDialog1.Execute then
+            begin
+                StrFilePath := SaveDialog1.FileName;
+                StrFilePath := FindRegEx(StrFilePath, '.+\.txt', StrFilePath + '.txt')[0];
+
+                if FileExists(StrFilePath) then
+                    if MessageDlg('Такой файл уже существует.' +
+                        #10#13 + 'Вы хотите перезаписать файл? Это действие невозможно отменить.',
+                        mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+                        ShouldNotRepeat := True
+                    else
+                        ShouldNotRepeat := False
+                else
+                    ShouldNotRepeat := True;
+
+                if ShouldNotRepeat then
+                begin
+                    AssignFile(FileOutput, StrFilePath);
+                    Rewrite(FileOutput);
+
+                    Write(FileOutput, 'Game ended: ' + IntToStr(Ord(Game.GameEnded)) + #10#13);
+                    Write(FileOutput, 'Time remaining white: ' + IntToStr(Game.TimeRemainingW) + #10#13);
+                    Write(FileOutput, 'Time remaining black: ' + IntToStr(Game.TimeRemainingB) + #10#13);
+
+                    Write(FileOutput, 'NOTATION_START' + #10#13);
+                    i := 0;
+                    while i < ListBoxNotationW.Count do
+                    begin
+                        Write(FileOutput, ListBoxNotationW.Items[i] + #10#13);
+                        if i < ListBoxNotationB.Count then
+                            Write(FileOutput, ListBoxNotationB.Items[i] + #10#13);
+
+                        Inc(i);
+                    end;
+                    Write(FileOutput, 'NOTATION_END' + #10#13);
+
+
+                    for k := 0 to High(Game.AllBoards) do
+                    begin
+                        for ii := 0 to 1 do
+                        begin
+                            for i := 1 to 8 do
+                                for j := 1 to 8 do
+                                    with Game.AllBoards[k][ii][i][j] do
+                                        Write(FileOutput, CellFigureName + IntToStr(Ord(CellFigureColorIsWhite)) + IntToStr(Ord(CellFigureHasMoved)));
+
+                            Write(FileOutput, #10#13);
+                        end;
+                    end;
+                    Write(FileOutput, 'BOARDS_END' + #10#13 + LastMove + #10#13);
+
+
+                    CloseFile(FileOutput);
+                    GameIsSaved := True;
+                    BalloonHint1.Title := 'Готово';
+                    BalloonHint1.Description := 'Партия успешно сохранена в файл.';
+                    Point.X := Round(PanelForBoard.Left + PanelForBoard.Width * 2 / 3);
+                    Point.Y := PanelForBoard.Top + PanelForBoard.Height;
+                    Balloonhint1.ShowHint(ClientToScreen(Point));
+                end;
+            end;
+        until ShouldNotRepeat;
+    except
+       ShowMessage('Не удается открыть файл для вывода данных или записать в него данные.');
+    end;
+
+    TimerForTimer.Enabled := TimerGoes;
+end;
+
+// *******************************
+// Game Finished
+
+procedure TFormChessMain.DoAfterGameEnded(WhoWon: TWhoWon;
+  HowGameEnded: THowGameEnded);
+begin
+    Screen.Cursor := 3;
+    Game.GameEnded := True;
+    ButtonResign.Enabled := False;
+    ButtonDraw.Enabled := False;
+    TimerForTimer.Enabled := False;
+
+    ShowWhoWon(WhoWon, HowGameEnded);
+end;
+
+procedure TFormChessMain.ShowWhoWon(WhoWon: TWhoWon;
+  HowGameEnded: THowGameEnded);
+begin
+    case WhoWon of
+        Draw:
+            begin
+                ImageWhoWon.Picture := ImageDraw.Picture;
+                LabelWhoWon.Caption := 'НИЧЬЯ';
+
+                // Notation
+                BufferFor1Move := BufferFor1Move + ' 0.5-0.5';
+            end;
+        White:
+            begin
+                ImageWhoWon.Picture := ImageWhite.Picture;
+                LabelWhoWon.Caption := 'БЕЛЫЕ ПОБЕДИЛИ';
+
+                // Notation
+                BufferFor1Move := BufferFor1Move + ' 1-0';
+            end;
+        Black:
+            begin
+                ImageWhoWon.Picture := ImageBlack.Picture;
+                LabelWhoWon.Caption := 'ЧЁРНЫЕ ПОБЕДИЛИ';
+
+                // Notation
+                BufferFor1Move := BufferFor1Move + ' 0-1';
+            end;
+    end;
+    case HowGameEnded of
+        Mate:
+            LabelHowGameEnded.Caption := 'Объявлен мат';
+        Stalemate:
+            LabelHowGameEnded.Caption := 'Объявлен пат';
+        ByTime:
+            LabelHowGameEnded.Caption := 'по времени';
+        Resign:
+            if WhoWon = White then
+                LabelHowGameEnded.Caption := 'Чёрные сдались'
+            else
+                LabelHowGameEnded.Caption := 'Белые сдались';
+        DrawByAgreement:
+            LabelHowGameEnded.Caption := 'Стороны договорились';
+        DrawByNotEnoughFigures:
+            LabelHowGameEnded.Caption := 'Невозможно объявить мат';
+        DrawBy3SamePosition:
+            LabelHowGameEnded.Caption := 'по повторению позиции';
+        DrawBy50MovesWithoutPawnMovedOrFigureCaptured:
+            LabelHowGameEnded.Caption := 'по правилу 50-ти ходов';
+        DrawOnTime:
+            LabelHowGameEnded.Caption := 'по времени';
+    end;
+
+    with PanelGameEnded do
+    begin
+        if Parent <> PanelForBoard then
+        begin
+            Parent := PanelForBoard;
+            Top := Round(PanelForBoard.Height / 2 - Height / 2);
+            Left := Round(PanelForBoard.Width / 2 - Width / 2);
+        end;
+        Visible := True;
+    end;
+
+    // Notation
+    if (HowGameEnded <> Mate) and (HowGameEnded <> StaleMate) then
+        if WhiteIsToMove then
+        begin
+            ListBoxNotationB.Items.Delete(ListBoxNotationB.Count - 1);
+            ListBoxNotationB.Items.Add(BufferFor1Move);
+        end
+        else
+        begin
+            ListBoxNotationW.Items.Delete(ListBoxNotationW.Count - 1);
+            ListBoxNotationW.Items.Add(BufferFor1Move);
+            CorrectLengthOfScrollboxForNotation();
+        end;
+end;
+
+// *******************************
+// Check, Mate and StaleMate
+
+procedure TFormChessMain.CheckIfCheckOrMateOrStaleMate();
+var
+    ThereAreAvailableMoves: Boolean;
+    WhoWon: TWhoWon;
+    HowGameEnded: THowGameEnded;
+
+begin
+    CheckIfCheck();
+
+    ThereAreAvailableMoves := CheckIfThereAreAvailableMoves();
+    if not ThereAreAvailableMoves then
+    begin
+        if NowCheck then
+        begin
+            HowGameEnded := Mate;
+            if WhiteIsToMove then
+                WhoWon := Black
+            else
+                WhoWon := White;
+
+            // Notation
+            BufferFor1Move := BufferFor1Move + '#';
+        end
+        else
+        begin
+            HowGameEnded := Stalemate;
+            WhoWon := Draw;
+
+            // Notation
+            BufferFor1Move := BufferFor1Move + '=';
+        end;
+
+        DoAfterGameEnded(WhoWon, HowGameEnded);
+    end
+    else if NowCheck then
+        // Notation
+        BufferFor1Move := BufferFor1Move + '+';
+end;
+
+function TFormChessMain.CheckIfCellIsNotAttacked(Board: TBoard;
+  CoorX, CoorY: Byte; AttackedByWhiteFigures: Boolean): Boolean;
+var
+    Figure: TFigure;
+    i: Byte;
+    IsNotAttacked: Boolean;
+
+begin
+    IsNotAttacked := True;
+    i := 0;
+    while (i < Length(ArrOfFigures)) and IsNotAttacked do
+    begin
+        if (ArrOfFigures[i] <> nil) and
+          (ArrOfFigures[i].FIsWhite = AttackedByWhiteFigures) then
+        begin
+            Figure := ArrOfFigures[i];
+            IsNotAttacked := not CheckMoveLegalPhysically(Board, Figure,
+              CoorX, CoorY);
+        end;
+        Inc(i);
+    end;
+    Result := IsNotAttacked;
+end;
+
+function TFormChessMain.CheckMoveLegalBecauseOfKillingKing(Figure: TFigure;
+  NextX, NextY: Byte): Boolean;
+var
+    BoardTemp: TBoard;
+    IsNotMate: Boolean;
+    King: TFigure;
+
+begin
+    BoardTemp := BoardReal;
+    MoveFigureToCell(BoardTemp, Figure, NextX, NextY, False);
+
+    King := FindKing(Figure.FIsWhite);
+
+    with King do
+        if Figure = King then
+            IsNotMate := CheckIfCellIsNotAttacked(BoardTemp, NextX, NextY,
+              not FIsWhite)
+        else
+            IsNotMate := CheckIfCellIsNotAttacked(BoardTemp, FPosOnBoardX,
+              FPosOnBoardY, not FIsWhite);
+
+    Result := IsNotMate;
+end;
+
+procedure TFormChessMain.CheckIfCheck();
+var
+    King: TFigure;
+
+begin
+    King := FindKing(WhiteIsToMove);
+    with King do
+        NowCheck := not CheckIfCellIsNotAttacked(BoardReal, FPosOnBoardX,
+          FPosOnBoardY, not FIsWhite);
+end;
+
+function TFormChessMain.CheckIfThereAreAvailableMoves(): Boolean;
+var
+    ThereIsNoLegalMoves: Boolean;
+    i, PosX, PosY: Byte;
+
+begin
+    ThereIsNoLegalMoves := True;
+    i := 0;
+    while (i < Length(ArrOfFigures)) and ThereIsNoLegalMoves do
+    begin
+        if (ArrOfFigures[i] <> nil) and
+          (ArrOfFigures[i].FIsWhite = WhiteIsToMove) then
+        begin
+            PosX := 1;
+            while (PosX < 9) and ThereIsNoLegalMoves do
+            begin
+                PosY := 1;
+                while (PosY < 9) and ThereIsNoLegalMoves do
+                begin
+                    ThereIsNoLegalMoves := not CheckMoveLegal(ArrOfFigures[i],
+                      PosX, PosY);
+                    Inc(PosY);
+                end;
+                Inc(PosX);
+            end;
+        end;
+        Inc(i);
+    end;
+
+    Result := not ThereIsNoLegalMoves;
+end;
+
+function TFormChessMain.FindKing(KingIsWhite: Boolean): TFigure;
+var
+    King: TFigure;
+    i: Byte;
+
+begin
+    i := 0;
+    King := nil;
+
+    while (i < Length(ArrOfFigures)) and (King = nil) do
+    begin
+        if (ArrOfFigures[i] <> nil) and (ArrOfFigures[i].FFigureType = 'K') and
+          (ArrOfFigures[i].FIsWhite = KingIsWhite) then
+            King := ArrOfFigures[i];
+        Inc(i);
+    end;
+
+    Result := King;
+end;
+
+// *******************************
+// Checking If Move Is Legal Physically
+
+function TFormChessMain.CheckMovePawnLegalPhysically(Board: TBoard;
+  Figure: TFigure; PosX, PosY: Byte; XRelat, YRelat: SmallInt): Boolean;
+const
+    AllowedMovesPawn: Array [0 .. 3] of Array [0 .. 1] of SmallInt = ((0, 1),
+      (0, 2), (1, 1), (-1, 1));
+
+var
+    IsLegal, LoopShouldGo: Boolean;
+    i: Byte;
+    CorrectorForColor: SmallInt;
+
+begin
+    IsLegal := False;
+    LoopShouldGo := True;
+    i := 0;
+
+    with Figure do
+    begin
+        if FIsWhite then
+            CorrectorForColor := 1
+        else
+            CorrectorForColor := -1;
+
+        while (i < Length(AllowedMovesPawn)) and LoopShouldGo do
+        begin
+            if ((XRelat = AllowedMovesPawn[i][0] * CorrectorForColor) and
+              (YRelat = AllowedMovesPawn[i][1] * CorrectorForColor)) then
+            begin
+                LoopShouldGo := False;
+
+                if (i < 2) then
+                begin
+                    if (Board[PosX][PosY].CellFigureName = '0') then
+                        if (i = 1) then
+                        begin
+                            IsLegal := Not FHasMoved and
+                              (Board[PosX][PosY - CorrectorForColor]
+                              .CellFigureName = '0');
+                        end
+                        else
+                            IsLegal := True;
+                end
+                else if Board[PosX][PosY].CellFigureName <> '0' then
+                    IsLegal := Board[PosX][PosY]
+                      .CellFigureColorIsWhite xor FIsWhite
+                else
+                begin
+                    if (((PosY = 6) and FIsWhite) or
+                      ((PosY = 3) and not FIsWhite)) and
+                      (StrToInt(LastMove[3]) = PosX) and
+                      (StrToInt(LastMove[4]) = PosY - CorrectorForColor) and
+                      (Board[StrToInt(LastMove[3])][StrToInt(LastMove[4])
+                      ].CellFigureName = 'P') then
+                    begin
+                        IsLegal := True;
+                        NowIsTakingOnAisle := True;
+                    end;
+                end;
+            end;
+            Inc(i);
+        end;
+    end;
+
+    Result := IsLegal;
+end;
+
+function TFormChessMain.CheckMoveQueenLegalPhysically(Board: TBoard;
+  Figure: TFigure; PosX, PosY: Byte; XRelat, YRelat: SmallInt): Boolean;
+begin
+    Result := CheckMoveRookLegalPhysically(Board, Figure, PosX, PosY, XRelat,
+      YRelat) or CheckMoveBishopLegalPhysically(Board, Figure, PosX, PosY,
+      XRelat, YRelat);
+end;
+
+function TFormChessMain.CheckMoveRookLegalPhysically(Board: TBoard;
+  Figure: TFigure; PosX, PosY: Byte; XRelat, YRelat: SmallInt): Boolean;
+var
+    IsLegal, LoopShouldGo: Boolean;
+    i: Byte;
+    Incr: ShortInt;
+
+begin
+    IsLegal := (XRelat = 0) or (YRelat = 0);
+
+    if IsLegal then
+        IsLegal := (Board[PosX][PosY].CellFigureName = '0') or
+          (Board[PosX][PosY].CellFigureColorIsWhite = not Figure.FIsWhite);
+
+    with Figure do
+        if IsLegal then
+        begin
+            if XRelat = 0 then
+            begin
+                Incr := Ord(YRelat > 0) * 2 - 1;
+                i := FPosOnBoardY + Incr;
+            end
+            else
+            begin
+                Incr := Ord(XRelat > 0) * 2 - 1;
+                i := FPosOnBoardX + Incr;
+            end;
+
+            LoopShouldGo := True;
+            while IsLegal and (i < 9) and (i > 0) and LoopShouldGo do
+            begin
+                if XRelat = 0 then
+                    if i <> PosY then
+                        IsLegal := Board[FPosOnBoardX][i].CellFigureName = '0'
+                    else
+                        LoopShouldGo := False
+                else if i <> PosX then
+                    IsLegal := Board[i][FPosOnBoardY].CellFigureName = '0'
+                else
+                    LoopShouldGo := False;
+
+                i := i + Incr;
+            end;
+
+        end;
+    Result := IsLegal;
+end;
+
+function TFormChessMain.CheckMoveBishopLegalPhysically(Board: TBoard;
+  Figure: TFigure; PosX, PosY: Byte; XRelat, YRelat: SmallInt): Boolean;
+var
+    IsLegal, LoopShouldGo: Boolean;
+    i, j: Byte;
+    IncrX, IncrY: ShortInt;
+
+begin
+    IsLegal := Abs(XRelat) = Abs(YRelat);
+
+    if IsLegal then
+        IsLegal := (Board[PosX][PosY].CellFigureName = '0') or
+          (Board[PosX][PosY].CellFigureColorIsWhite = not Figure.FIsWhite);
+
+    with Figure do
+        if IsLegal then
+        begin
+            IncrX := Ord(XRelat > 0) * 2 - 1;
+            IncrY := Ord(YRelat > 0) * 2 - 1;
+
+            i := FPosOnBoardX + IncrX;
+            j := FPosOnBoardY + IncrY;
+            LoopShouldGo := True;
+            while IsLegal and (i < 9) and (i > 0) and (j < 9) and (j > 0) and
+              LoopShouldGo do
+            begin
+                if i <> PosX then
+                    IsLegal := Board[i][j].CellFigureName = '0'
+                else
+                    LoopShouldGo := False;
+
+                i := i + IncrX;
+                j := j + IncrY;
+            end;
+        end;
+
+    Result := IsLegal;
+end;
+
+function TFormChessMain.CheckMoveKnightLegalPhysically(Board: TBoard;
+  Figure: TFigure; PosX, PosY: Byte; XRelat, YRelat: SmallInt): Boolean;
+var
+    IsLegal: Boolean;
+
+begin
+    IsLegal := Abs(XRelat) + Abs(YRelat) = 3;
+
+    if IsLegal then
+        IsLegal := (Board[PosX][PosY].CellFigureName = '0') or
+          (Board[PosX][PosY].CellFigureColorIsWhite = not Figure.FIsWhite);
+
+    if IsLegal then
+        IsLegal := (Abs(XRelat) = 2) or (Abs(YRelat) = 2);
+
+    Result := IsLegal;
+end;
+
+function TFormChessMain.CheckMoveKingLegalPhysically(Board: TBoard;
+  Figure: TFigure; PosX, PosY: Byte; XRelat, YRelat: SmallInt): Boolean;
+var
+    IsLegal: Boolean;
+    Rook: TFigure;
+    ColNum: Byte;
+    BoardTemp: TBoard;
+
+begin
+    IsLegal := ((Abs(XRelat) < 2) and (Abs(YRelat) < 2)) or
+      ((Abs(XRelat) = 2) and (YRelat = 0));
+
+    if IsLegal then
+        IsLegal := (Board[PosX][PosY].CellFigureName = '0') or
+          (Board[PosX][PosY].CellFigureColorIsWhite = not Figure.FIsWhite);
+
+    if IsLegal and (Abs(XRelat) = 2) then
+    begin
+        IsLegal := (Board[PosX][PosY].CellFigureName = '0');
+
+        if XRelat > 0 then
+            ColNum := 8
+        else
+            ColNum := 1;
+
+        if IsLegal and (not Figure.FHasMoved) and
+          (Board[ColNum][8 - Ord(Figure.FIsWhite) * 7].CellFigureName = 'R')
+        then
+        begin
+            Rook := ArrOfFigures[Board[ColNum][8 - Ord(Figure.FIsWhite) * 7]
+              .CellFigureIndex];
+            if (Rook.FIsWhite = Figure.FIsWhite) and (not Rook.FHasMoved) then
+            begin
+                BoardTemp := Board;
+                with Figure do
+                    BoardTemp[FPosOnBoardX][FPosOnBoardY].CellFigureName := '0';
+                // remove king in Temp Board
+
+                if ColNum = 8 then
+                    if (Board[6][8 - Ord(Figure.FIsWhite) * 7]
+                      .CellFigureName = '0') and
+                      CheckIfCellIsNotAttacked(BoardTemp, 6,
+                      8 - Ord(Figure.FIsWhite) * 7, not Figure.FIsWhite) and
+                      CheckIfCellIsNotAttacked(BoardTemp, 7,
+                      8 - Ord(Figure.FIsWhite) * 7, not Figure.FIsWhite) and not NowCheck
+                    then
+                        NowIsCastling := True
+                    else
+                        IsLegal := False
+                else if (Board[2][8 - Ord(Figure.FIsWhite) * 7]
+                  .CellFigureName = '0') and
+                  (Board[4][8 - Ord(Figure.FIsWhite) * 7].CellFigureName = '0')
+                  and CheckIfCellIsNotAttacked(BoardTemp, 4,
+                  8 - Ord(Figure.FIsWhite) * 7, not Figure.FIsWhite) and
+                  CheckIfCellIsNotAttacked(BoardTemp, 3,
+                  8 - Ord(Figure.FIsWhite) * 7, not Figure.FIsWhite) and not NowCheck
+                then
+                    NowIsCastling := True
+                else
+                    IsLegal := False
+            end
+            else
+                IsLegal := False;
+        end
+        else
+            IsLegal := False;
+    end;
+
+    Result := IsLegal;
+end;
+
+function TFormChessMain.CheckMoveLegalPhysically(Board: TBoard; Figure: TFigure;
+  PosX, PosY: Byte): Boolean;
+var
+    IsLegal: Boolean;
+    XRelat, YRelat: SmallInt;
+
+begin
+    with Figure do
+    begin
+        if FPsevdoKilled then
+        begin
+            IsLegal := False;
+            FPsevdoKilled := False;
+        end
+        else
+        begin
+            XRelat := PosX - FPosOnBoardX;
+            YRelat := PosY - FPosOnBoardY;
+
+            case FFigureType of
+                'P':
+                    IsLegal := CheckMovePawnLegalPhysically(Board, Figure, PosX,
+                      PosY, XRelat, YRelat);
+                'Q':
+                    IsLegal := CheckMoveQueenLegalPhysically(Board, Figure,
+                      PosX, PosY, XRelat, YRelat);
+                'R':
+                    IsLegal := CheckMoveRookLegalPhysically(Board, Figure, PosX,
+                      PosY, XRelat, YRelat);
+                'B':
+                    IsLegal := CheckMoveBishopLegalPhysically(Board, Figure,
+                      PosX, PosY, XRelat, YRelat);
+                'N':
+                    IsLegal := CheckMoveKnightLegalPhysically(Board, Figure,
+                      PosX, PosY, XRelat, YRelat);
+                'K':
+                    IsLegal := CheckMoveKingLegalPhysically(Board, Figure, PosX,
+                      PosY, XRelat, YRelat);
+            else
+                begin
+                    ShowMessage('Ошибка в кодировке выбранной фигуры.');
+                    IsLegal := False;
+                end;
+            end;
+        end;
+    end;
+
+    Result := IsLegal;
+end;
+
+// *******************************
+// Checking If Move Is Legal
+
+function TFormChessMain.CheckMoveLegal(Figure: TFigure;
+  PosX, PosY: Byte): Boolean;
+begin
+    with Figure do
+        Result := (FIsWhite = WhiteIsToMove) and (PosX < 9) and (PosX > 0) and
+          (PosY < 9) and (PosY > 0) and
+          ((PosX <> FPosOnBoardX) or (PosY <> FPosOnBoardY)) and
+          CheckMoveLegalPhysically(BoardReal, Figure, PosX, PosY) and
+          CheckMoveLegalBecauseOfKillingKing(Figure, PosX, PosY);
+end;
+
+// *******************************
+// Moving Figures With Mouse
+
+procedure TFormChessMain.FigureMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+    if LabelPause.Visible then
+    begin
+        ImagePauseAndStartTimer.Picture := ImagePause.Picture;
+        LabelPause.Visible := False;
+        TimerForTimer.Enabled := True;
+    end;
+
+    if not Game.GameEnded and not NowAnimating then
+    begin
+        With Sender as TFigure do
+            if not FIsOnDrag then
+            begin
+                FIsOnDrag := True;
+                ScaleFigure(Sender as TFigure, ScaleWhileFigureOnDrag);
+                DragShiftX :=
+                  X + Round(MultPixels(SizeOfFigure) *
+                  ((ScaleWhileFigureOnDrag - 1) / 2));
+                DragShiftY :=
+                  Y + Round(MultPixels(SizeOfFigure) *
+                  ((ScaleWhileFigureOnDrag - 1) / 2));
+                BringToFront;
+            end;
+
+        Screen.Cursor := 2;
+    end;
+end;
+
+procedure TFormChessMain.FigureMouseMove(Sender: TObject; Shift: TShiftState;
+  X, Y: Integer);
+var
+    ShiftState: TShiftState;
+    MouseButton: TMouseButton;
+
+begin
+    if not Game.GameEnded then
+        With Sender as TFigure do
+        begin
+            if FIsOnDrag then
+            begin
+                // Moving Centre Of Figure To Cursor
+                DragShiftX := Round(DragShiftX - Power(0.3 * Abs(DragShiftX - Width / 2), 0.5) * (2 * Ord(DragShiftX > Width / 2) - 1));
+                DragShiftY := Round(DragShiftY - Power(0.3 * Abs(DragShiftY - Width / 2), 0.5) * (2 * Ord(DragShiftY > Height / 2) - 1));
+
+                Left := Left + X - DragShiftX;
+                Top := Top + Y - DragShiftY;
+
+                MouseButton := mbLeft;
+
+                // Moving figure back if it is not above board
+                if (Left < -MultPixels(SizeOfFigure)) or
+                  (Top < -MultPixels(SizeOfFigure)) or
+                  (Left > PanelForBoard.Width + MultPixels(SizeOfFigure)) or
+                  (Top > PanelForBoard.Height + MultPixels(SizeOfFigure)) then
+                    FigureMouseUp(Sender, MouseButton, ShiftState, 0, 0);
+            end;
+        end;
+end;
+
+procedure TFormChessMain.FigureMouseUp(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+var
+    PosX, PosY: Byte;
+    Figure: TFigure;
+
+begin
+    if not Game.GameEnded then
+    begin
+        (Sender as TFigure).FIsOnDrag := False;
+        With Sender as TFigure do
+        begin
+            PosX := Round((Left / MultPix - WidthOfEdgePlusAdjust -
+              ShiftOfFigure) / SizeOfCell + 1);
+            PosY := Round((WidthOfBoard + ShiftOfFigure - WidthOfEdgePlusAdjust
+              - Round(Top / MultPix)) / SizeOfCell);
+        end;
+
+        Figure := Sender as TFigure;
+        if CheckMoveLegal(Figure, PosX, PosY) then
+            MakeAMove(Figure, PosX, PosY)
+        else
+            with Figure do
+                MoveFigureToCell(BoardReal, Figure, FPosOnBoardX, FPosOnBoardY);
+
+        NowIsTakingOnAisle := False;
+        NowIsCastling := False;
+
+        if not Game.GameEnded then
+            Screen.Cursor := 1;
+    end;
+end;
+
+procedure TFormChessMain.FigureMouseEnter(Sender: TObject);
+begin
+    if not Game.GameEnded then
+        Screen.Cursor := 1;
+end;
+
+procedure TFormChessMain.FigureMouseLeave(Sender: TObject);
+begin
+    if not Game.GameEnded then
+        Screen.Cursor := 3;
+end;
+
+procedure TFormChessMain.ScaleFigure(Figure: TFigure; Scale: Single);
+var
+    CoordTemp: TCoord;
+
+begin
+    With Figure do
+    begin
+        CoordTemp := CountCoordinatesOfFigure(FPosOnBoardX, FPosOnBoardY);
+        Left := CoordTemp.Left - Round(MultPixels(SizeOfFigure) *
+          ((Scale - 1) / 2));
+        Top := CoordTemp.Top - Round(MultPixels(SizeOfFigure) *
+          ((Scale - 1) / 2));
+        Width := Round(MultPixels(SizeOfFigure) * Scale);
+        Height := Round(MultPixels(SizeOfFigure) * Scale);
+    end;
+end;
+
+function TFormChessMain.CountCoordinatesOfFigure(PosX, PosY: Byte): TCoord;
+var
+    Output: TCoord;
+
+begin
+    Output.Top := MultPixels(WidthOfBoard + ShiftOfFigure -
+      WidthOfEdgePlusAdjust - PosY * SizeOfCell);
+    Output.Left := MultPixels(WidthOfEdgePlusAdjust + ShiftOfFigure + (PosX - 1)
+      * SizeOfCell);
+
+    Result := Output;
+end;
+
+// *******************************
+// Moving Figures
+
+procedure TFormChessMain.MakeAMove(Figure: TFigure;
+  NextPosOnBoardX, NextPosOnBoardY: Byte);
+begin
+    // Notation
+    BufferFor1Move := '';
+
+    if not TimerForTimer.Enabled then
+    begin
+        TimerForTimer.Enabled := True;
+        ImagePauseAndStartTimer.Picture := ImagePause.Picture;
+        ImagePauseAndStartTimer.Visible := True;
+    end;
+
+    ButtonResign.Enabled := True;
+    ButtonDraw.Enabled := True;
+
+    FigureMoveAndKillAnother(Figure, NextPosOnBoardX, NextPosOnBoardY);
+
+    if (Figure.FFigureType = 'P') and
+      (NextPosOnBoardY = 1 + Ord(Figure.FIsWhite) * 7) then
+        PawnTransformation(Figure)
+    else
+        AfterPawnTranformed();
+end;
+
+procedure TFormChessMain.AfterPawnTranformed();
+begin
+    WhiteIsToMove := not WhiteIsToMove;
+
+    CheckIfCheckOrMateOrStaleMate();
+
+    // Notation
+    if WhiteIsToMove then
+    begin
+        ListBoxNotationB.Items.Add(BufferFor1Move);
+    end
+    else
+    begin
+        ListBoxNotationNum.Items.Add(IntToStr(High(Game.AllBoards) + 2) + '.');
+        ListBoxNotationW.Items.Add(BufferFor1Move);
+        CorrectLengthOfScrollboxForNotation();
+    end;
+
+    WriteOneMoveOfGame();
+
+    if (Length(Game.AllBoards) > 1) or WhiteIsToMove then
+        if WhiteIsToMove then
+            Game.TimeRemainingB := Game.TimeRemainingB + DefaultAddingOnTimer
+        else
+            Game.TimeRemainingW := Game.TimeRemainingW + DefaultAddingOnTimer;
+
+    ShowTimeOnTimer(not WhiteIsToMove);
+
+    NSaveAs.Enabled := True;
+end;
+
+procedure TFormChessMain.FigureMoveAndKillAnother(Figure: TFigure;
+  NextPosOnBoardX, NextPosOnBoardY: Byte);
+var
+    Rook: TFigure;
+
+begin
+    GameIsSaved := False;
+
+    with Figure do
+    begin
+        // Notation
+        if FFigureType <> 'P' then
+            BufferFor1Move := BufferFor1Move + FFigureType;
+
+        // Notation
+        BufferFor1Move := BufferFor1Move + Chr(FPosOnBoardX + Ord('a') - 1) +
+          IntToStr(FPosOnBoardY);
+
+        if NowIsTakingOnAisle then
+        begin
+            if FIsWhite then
+                KillFigureOnCell(NextPosOnBoardX, NextPosOnBoardY - 1)
+            else
+                KillFigureOnCell(NextPosOnBoardX, NextPosOnBoardY + 1);
+        end
+        else
+            KillFigureOnCell(NextPosOnBoardX, NextPosOnBoardY);
+
+        // Notation
+        BufferFor1Move := BufferFor1Move + Chr(NextPosOnBoardX + Ord('a') - 1) +
+          IntToStr(NextPosOnBoardY);
+
+        if NowIsCastling then
+        begin
+            if NextPosOnBoardX > 5 then
+            begin
+                Rook := ArrOfFigures
+                  [BoardReal[NextPosOnBoardX + 1][NextPosOnBoardY]
+                  .CellFigureIndex];
+                MoveFigureToCell(BoardReal, Rook, NextPosOnBoardX - 1,
+                  NextPosOnBoardY);
+
+                // Notation
+                BufferFor1Move := '0-0';
+            end
+            else
+            begin
+                Rook := ArrOfFigures
+                  [BoardReal[NextPosOnBoardX - 2][NextPosOnBoardY]
+                  .CellFigureIndex];
+                MoveFigureToCell(BoardReal, Rook, NextPosOnBoardX + 1,
+                  NextPosOnBoardY);
+
+                // Notation
+                BufferFor1Move := '0-0-0';
+            end;
+        end;
+
+        FHasMoved := True;
+        LastMove := IntToStr(FPosOnBoardX) + IntToStr(FPosOnBoardY) +
+          IntToStr(NextPosOnBoardX) + IntToStr(NextPosOnBoardY);
+    end;
+
+    MoveFigureToCell(BoardReal, Figure, NextPosOnBoardX, NextPosOnBoardY);
+end;
+
+procedure TFormChessMain.KillFigureOnCell(PosX, PosY: Byte;
+  ShouldWriteNotation: Boolean = True);
+var
+    IndexOfFigureToKill: Byte;
+
+begin
+    if (BoardReal[PosX][PosY].CellFigureName <> '0') then
+    begin
+        IndexOfFigureToKill := BoardReal[PosX][PosY].CellFigureIndex;
+        BoardReal[PosX][PosY].CellFigureName := '0';
+
+        ArrOfFigures[IndexOfFigureToKill].Free;
+        ArrOfFigures[IndexOfFigureToKill] := nil;
+
+        // Notation
+        if ShouldWriteNotation then
+            BufferFor1Move := BufferFor1Move + 'x';
+    end
+    else
+        // Notation
+        if ShouldWriteNotation then
+            BufferFor1Move := BufferFor1Move + '-';
+end;
+
+
+procedure TFormChessMain.MoveFigureToCell(var Board: TBoard; Figure: TFigure;
+  PosX, PosY: Byte; FigureIsReal: Boolean = True);
+var
+    CoordTemp: TCoord;
+
+begin
+    with FormChessMain do
+    with Figure do
+    begin
+        with Board[FPosOnBoardX][FPosOnBoardY] do
+            CellFigureName := '0';
+
+        if FigureIsReal then
+        begin
+            FPosOnBoardX := PosX;
+            FPosOnBoardY := PosY;
+        end
+        else if Board[PosX][PosY].CellFigureName <> '0' then
+            ArrOfFigures[Board[PosX][PosY].CellFigureIndex]
+              .FPsevdoKilled := True;
+
+        with Board[PosX][PosY] do
+        begin
+            CellFigureColorIsWhite := FIsWhite;
+            CellFigureName := FFigureType;
+            CellFigureIndex := FFigureInd;
+        end;
+
+        if FigureIsReal then
+        begin
+            CoordTemp := CountCoordinatesOfFigure(PosX, PosY);
+
+            if NowIsCastling and (FFigureType = 'R') then
+            begin
+                Top := CoordTemp.Top;
+                Left := CoordTemp.Left;
+            end
+            else
+                MoveFigureWithAnimation(Figure, CoordTemp.Top, CoordTemp.Left);
+
+            Width := MultPixels(SizeOfFigure);
+            Height := MultPixels(SizeOfFigure);
+        end;
+    end;
+end;
+
+procedure TFormChessMain.MoveFigureWithAnimation(ImgToMoveWithAnimation
+  : TFigure; NeedTop, NeedLeft: SmallInt; AnimationTime: Single = 0.1);
+var
+    TicksQuantity: Single;
+
+begin
+    with ImgToMoveWithAnimation do
+    begin
+        ImgToMoveWithAnimationGlobal := ImgToMoveWithAnimation;
+        if (Abs(NeedTop - Top) > 10) or (Abs(NeedLeft - Left) > 10) then
+        begin
+            NowAnimating := True;
+
+            TicksQuantity := AnimationTime * 1000 / TimerForAnimation.Interval;
+            XPS_AnimationOfImg := Round((NeedLeft - Left) / TicksQuantity);
+            YPS_AnimationOfImg := Round((NeedTop - Top) / TicksQuantity);
+
+            NeedTop_AnimationOfImg := NeedTop;
+            NeedLeft_AnimationOfImg := NeedLeft;
+
+            TimerForAnimation.Enabled := True;
+        end
+        else
+            ScaleFigure(ImgToMoveWithAnimation, 1);
+    end;
+end;
+
+procedure TFormChessMain.TimerForAnimationTimer(Sender: TObject);
+begin
+    with ImgToMoveWithAnimationGlobal do
+        if (Abs(NeedLeft_AnimationOfImg - Left) < Abs(XPS_AnimationOfImg)) or
+          (Abs(NeedTop_AnimationOfImg - Top) < Abs(YPS_AnimationOfImg)) then
+        begin
+            TimerForAnimation.Enabled := False;
+
+            Top := NeedTop_AnimationOfImg;
+            Left := NeedLeft_AnimationOfImg;
+
+            NowAnimating := False;
+        end
+        else
+        begin
+            Top := Top + YPS_AnimationOfImg;
+            Left := Left + XPS_AnimationOfImg;
+        end;
+end;
+
+// *******************************
+// Pawn Transformation
+
+procedure TFormChessMain.PawnTransformation(Figure: TFigure);
+begin
+    ButtonResign.Enabled := False;
+    ButtonDraw.Enabled := False;
+
+    with Figure do
+        if FIsWhite then
+            with PanelChoiceOfTransPawnForWhite do
+            begin
+                if Parent <> PanelForBoard then
+                begin
+                    Parent := PanelForBoard;
+                    Top := Round(PanelForBoard.Height / 2 - Height / 2);
+                    Left := Round(PanelForBoard.Width / 2 - Width / 2);
+                end;
+                Visible := True;
+            end
+        else
+            with PanelChoiceOfTransPawnForBlack do
+            begin
+                if Parent <> PanelForBoard then
+                begin
+                    Parent := PanelForBoard;
+                    Top := Round(PanelForBoard.Height / 2 - Height / 2);
+                    Left := Round(PanelForBoard.Width / 2 - Width / 2);
+                end;
+                Visible := True;
+            end;
+end;
+
+procedure TFormChessMain.EndPawnTransformation(NewTypeOfFigure: Char);
+var
+    Figure: TFigure;
+    Cell: TCell;
+
+begin
+    BoardReal[StrToInt(LastMove[3])][StrToInt(LastMove[4])].CellFigureName :=
+      NewTypeOfFigure;
+    Cell := BoardReal[StrToInt(LastMove[3])][StrToInt(LastMove[4])];
+    Figure := ArrOfFigures[Cell.CellFigureIndex];
+    Figure.FFigureType := NewTypeOfFigure;
+
+    with Figure do
+        if Figure.FIsWhite then
+            case NewTypeOfFigure of
+                'Q':
+                    Picture := ImageWQ.Picture;
+                'R':
+                    Picture := ImageWR.Picture;
+                'B':
+                    Picture := ImageWB.Picture;
+                'N':
+                    Picture := ImageWN.Picture;
+            end
+        else
+            case NewTypeOfFigure of
+                'Q':
+                    Picture := ImageBQ.Picture;
+                'R':
+                    Picture := ImageBR.Picture;
+                'B':
+                    Picture := ImageBB.Picture;
+                'N':
+                    Picture := ImageBN.Picture;
+            end;
+
+    BufferFor1Move := BufferFor1Move + NewTypeOfFigure;
+
+    with Figure do
+        if FIsWhite then
+            PanelChoiceOfTransPawnForWhite.Visible := False
+        else
+            PanelChoiceOfTransPawnForBlack.Visible := False;
+
+
+    ButtonResign.Enabled := True;
+    ButtonDraw.Enabled := True;
+
+    AfterPawnTranformed();
+end;
+
+procedure TFormChessMain.ImageBBClick(Sender: TObject);
+begin
+    EndPawnTransformation('B');
+end;
+
+procedure TFormChessMain.ImageBNClick(Sender: TObject);
+begin
+    EndPawnTransformation('N');
+end;
+
+procedure TFormChessMain.ImageBoardClick(Sender: TObject);
+begin
+    if LabelPause.Visible then
+    begin
+        ImagePauseAndStartTimer.Picture := ImagePause.Picture;
+        LabelPause.Visible := False;
+        TimerForTimer.Enabled := True;
+    end;
+end;
+
+procedure TFormChessMain.ImageBQClick(Sender: TObject);
+begin
+    EndPawnTransformation('Q');
+end;
+
+procedure TFormChessMain.ImageBRClick(Sender: TObject);
+begin
+    EndPawnTransformation('R');
+end;
+
+procedure TFormChessMain.ImageWBClick(Sender: TObject);
+begin
+    EndPawnTransformation('B');
+end;
+
+procedure TFormChessMain.ImageWNClick(Sender: TObject);
+begin
+    EndPawnTransformation('N');
+end;
+
+procedure TFormChessMain.ImageWQClick(Sender: TObject);
+begin
+    EndPawnTransformation('Q');
+end;
+
+procedure TFormChessMain.ImageWRClick(Sender: TObject);
+begin
+    EndPawnTransformation('R');
+end;
+
+// *******************************
+// Making Figures
+
+procedure TFormChessMain.PlaceFiguresOnStandartPlace();
+var
+    i: Integer;
+
+begin
+    SetLength(ArrOfFigures, 32);
+
+    CreateOneFigure(ArrOfFigures[0], 0, 5, 1, 'K', 'W');
+    CreateOneFigure(ArrOfFigures[1], 1, 4, 1, 'Q', 'W');
+    CreateOneFigure(ArrOfFigures[16], 16, 5, 8, 'K', 'B');
+    CreateOneFigure(ArrOfFigures[17], 17, 4, 8, 'Q', 'B');
+
+    for i := 8 to 15 do
+        CreateOneFigure(ArrOfFigures[i], i, i - 7, 2, 'P', 'W');
+
+    for i := 24 to 31 do
+        CreateOneFigure(ArrOfFigures[i], i, i - 23, 7, 'P', 'B');
+
+    CreateOneFigure(ArrOfFigures[2], 2, 3, 1, 'B', 'W');
+    CreateOneFigure(ArrOfFigures[3], 3, 6, 1, 'B', 'W');
+    CreateOneFigure(ArrOfFigures[4], 4, 2, 1, 'N', 'W');
+    CreateOneFigure(ArrOfFigures[5], 5, 7, 1, 'N', 'W');
+    CreateOneFigure(ArrOfFigures[6], 6, 1, 1, 'R', 'W');
+    CreateOneFigure(ArrOfFigures[7], 7, 8, 1, 'R', 'W');
+
+    CreateOneFigure(ArrOfFigures[18], 18, 3, 8, 'B', 'B');
+    CreateOneFigure(ArrOfFigures[19], 19, 6, 8, 'B', 'B');
+    CreateOneFigure(ArrOfFigures[20], 20, 2, 8, 'N', 'B');
+    CreateOneFigure(ArrOfFigures[21], 21, 7, 8, 'N', 'B');
+    CreateOneFigure(ArrOfFigures[22], 22, 1, 8, 'R', 'B');
+    CreateOneFigure(ArrOfFigures[23], 23, 8, 8, 'R', 'B');
+end;
+
+procedure TFormChessMain.CreateOneFigure(var Figure: TFigure;
+  FigIndex, PosX, PosY: Byte; FigType, ColorOfFig: Char; HasMoved: Boolean = False);
+var
+    CoordTemp: TCoord;
+
+begin
+    Figure := TFigure.Create();
+    with Figure do
+    begin
+        FFigureType := FigType;
+        FPosOnBoardX := PosX;
+        FPosOnBoardY := PosY;
+        FIsWhite := UpperCase(ColorOfFig + '') = 'W';
+        FHasMoved := HasMoved;
+
+        if FIsWhite then
+            case FFigureType of
+                'Q':
+                    Picture := ImageWQ.Picture;
+                'R':
+                    Picture := ImageWR.Picture;
+                'B':
+                    Picture := ImageWB.Picture;
+                'N':
+                    Picture := ImageWN.Picture;
+                'P':
+                    Picture := ImageWP.Picture;
+                'K':
+                    Picture := ImageWK.Picture;
+            end
+        else
+            case FFigureType of
+                'Q':
+                    Picture := ImageBQ.Picture;
+                'R':
+                    Picture := ImageBR.Picture;
+                'B':
+                    Picture := ImageBB.Picture;
+                'N':
+                    Picture := ImageBN.Picture;
+                'P':
+                    Picture := ImageBP.Picture;
+                'K':
+                    Picture := ImageBK.Picture;
+            end;
+
+        Parent := PanelForBoard;
+        FFigureInd := FigIndex;
+
+        CoordTemp := CountCoordinatesOfFigure(PosX, PosY);
+        Top := CoordTemp.Top;
+        Left := CoordTemp.Left;
+        Width := MultPixels(SizeOfFigure);
+        Height := MultPixels(SizeOfFigure);
+
+        with BoardReal[PosX][PosY] do
+        begin
+            CellFigureColorIsWhite := FIsWhite;
+            CellFigureName := FFigureType;
+            CellFigureIndex := FigIndex;
+        end;
+
+        OnMouseDown := FigureMouseDown;
+        OnMouseMove := FigureMouseMove;
+        OnMouseUp := FigureMouseUp;
+        OnMouseEnter := FigureMouseEnter;
+        OnMouseLeave := FigureMouseLeave;
+    end;
+end;
+
+
+
+// *******************************
+// OnFormCreate
+
+procedure TFormChessMain.FormCreate(Sender: TObject);
+begin
+    PageControl1.ActivePageIndex := 0;
+
+    GameIsSaved := True;
+
+    SizeOfFigure := Round(SizeOfCell * SizeOfFigureComparedToCell);
+    ShiftOfFigure := Round(SizeOfCell * (1 - SizeOfFigureComparedToCell) / 2);
+
+    MultPix := LabelToMeasureScreenOfUser.Width / 100;
+
+    Screen.Cursors[1] :=
+      HCursor(LoadCursorFromFile('Wii Pointer Open Hand.cur'));
+    Screen.Cursors[2] := HCursor(LoadCursorFromFile('Wii Pointer Grab.cur'));
+    Screen.Cursors[3] := HCursor(LoadCursorFromFile('Wii Pointer.cur'));
+    Screen.Cursor := 3;
+
+    with ImageBackGround do
+    begin
+        Left := 0;
+        Top := -Round(FormChessMain.ClientHeight / 4);
+        Width := FormChessMain.ClientWidth;
+        Height := Round(FormChessMain.ClientHeight * 16 / 9);
+    end;
+
+    With PanelForBoard do
+    begin
+        Top := MultPixels(TopOfBoard);
+        Left := MultPixels(LeftOFBoard);
+        Width := MultPixels(WidthOfBoard);
+        Height := MultPixels(WidthOfBoard);
+    end;
+
+    With ImageBoard do
+    begin
+        Top := 0;
+        Left := 0;
+        Width := MultPixels(WidthOfBoard);
+        Height := MultPixels(WidthOfBoard);
+    end;
+
+    ResetChessboardToStandart();
+end;
+
+
+// *******************************
+// Interface during Chess Play
+
+procedure TFormChessMain.ButtonDrawClick(Sender: TObject);
+begin
+    if MessageDlg('Завершить партию с результатом "Ничья"?', mtConfirmation,
+      [mbYes, mbNo], 0) = mrYes then
+        DoAfterGameEnded(Draw, DrawByAgreement);
+end;
+
+procedure TFormChessMain.ButtonResignClick(Sender: TObject);
+var
+    WhoResigns: String;
+
+begin
+    if WhiteIsToMove then
+        WhoResigns := 'Белые'
+    else
+        WhoResigns := 'Чёрные';
+
+    if MessageDlg(WhoResigns + ' сдаются?', mtConfirmation,
+      [mbYes, mbNo], 0) = mrYes then
+        if WhiteIsToMove then
+            DoAfterGameEnded(Black, Resign)
+        else
+            DoAfterGameEnded(White, Resign);
+end;
+
+procedure TFormChessMain.ButtonSaveGameClick(Sender: TObject);
+begin
+    NSaveAsClick(Self);
+end;
+
+procedure TFormChessMain.ButtonStartNewGameClick(Sender: TObject);
+var
+    SaidNoSaving: Boolean;
+
+begin
+    SaidNoSaving := False;
+
+    if not GameIsSaved then
+        if MessageDlg('Вы хотите сохранить текущую партию?' +
+        #10#13 + 'Иначе после открытия файла текущая партия будет удалена.',
+        mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+            NSaveAsClick(Self)
+        else
+            SaidNoSaving := True;
+
+    if (GameIsSaved or SaidNoSaving or (MessageDlg('Вы уверены, что хотите начать новую игру?' + #10#13 +
+        'Текущая игра будет удалена.', mtConfirmation, [mbYes, mbCancel], 0) = mrYes)) then
+    begin
+        ResetChessboardToStandart();
+        PanelGameEnded.Visible := False;
+    end;
+end;
+
+procedure TFormChessMain.ButtonExitClick(Sender: TObject);
+var
+    CanClose: Boolean;
+
+begin
+    CanClose := GameIsSaved or
+      (MessageDlg('Вы уверены, что хотите закрыть шахматную партию?' + #10#13 +
+      'Все несохранённые данные будут утеряны.', mtConfirmation, [mbYes, mbNo],
+      0) = mrYes);
+
+    if CanClose then
+    begin
+        TimerForTimer.Enabled := False;
+
+        PageControl1.ActivePageIndex := 0;
+        ClearChessboard();
+        SetLength(ArrOfFigures, 0);
+
+        PanelGameEnded.Visible := False;
+        PanelChoiceOfTransPawnForBlack.Visible := False;
+        PanelChoiceOfTransPawnForWhite.Visible := False;
+    end;
+end;
+
+procedure TFormChessMain.ClearChessboard();
+var
+    i, j: Integer;
+
+begin
+    for i := 0 to High(ArrOfFigures) do
+        if ArrOfFigures[i] <> nil then
+            ArrOfFigures[i].Destroy;
+    SetLength(ArrOfFigures, 0);
+
+    for i := 1 to 8 do
+        for j := 1 to 8 do
+            BoardReal[i][j].CellFigureName := '0';
+end;
+
+procedure TFormChessMain.ResetChessboardToStandart();
+begin
+    ClearChessboard();
+
+    PlaceFiguresOnStandartPlace();
+
+    GameIsSaved := True;
+    WhiteIsToMove := True;
+    NowIsTakingOnAisle := False;
+    NowIsCastling := False;
+    NowCheck := False;
+
+    SetLength(Game.AllBoards, 0);
+    Game.GameEnded := False;
+
+    Game.TimeRemainingW := DefaultTimeOnTimer;
+    Game.TimeRemainingB := DefaultTimeOnTimer;
+    ShowTimeOnTimer(True);
+    ShowTimeOnTimer(False);
+    ImagePauseAndStartTimer.Picture := ImagePause.Picture;
+    ImagePauseAndStartTimer.Visible := False;
+    LabelPause.Visible := False;
+
+
+    ListBoxNotationW.Clear();
+    ListBoxNotationB.Clear();
+    ListBoxNotationNum.Clear();
+
+    TimerForTimer.Enabled := False;
+
+    PanelForReplay.Visible := False;
+    PanelChoiceOfTransPawnForBlack.Visible := False;
+    PanelChoiceOfTransPawnForWhite.Visible := False;
+    PanelGameEnded.Visible := False;
+
+    LastMove := '    ';
+
+    ItemIndexW := -1;
+    ItemIndexB := -1;
+
+    NowAnimating := False;
+    ButtonResign.Enabled := False;
+    ButtonDraw.Enabled := False;
+
+    NSaveAs.Enabled := False;
+end;
+
+procedure TFormChessMain.CorrectLengthOfScrollboxForNotation();
+var
+    Rect: TRect;
+
+begin
+    Rect := ListBoxNotationW.ItemRect(ListBoxNotationW.Count - 1);
+    if Rect.Top + Rect.Height > ListBoxNotationW.Top + ListBoxNotationW.Height then
+    begin
+        ListBoxNotationW.Height := ListBoxNotationW.Height + 50;
+        ListBoxNotationB.Height := ListBoxNotationB.Height + 50;
+        ListBoxNotationNum.Height := ListBoxNotationNum.Height + 50;
+    end;
+end;
+
+// *******************************
+// Menu
+
+procedure TFormChessMain.ButtonMenuOpenGameClick(Sender: TObject);
+begin
+    NOpenClick(Self);
+end;
+
+procedure TFormChessMain.ButtonMenuNewGameClick(Sender: TObject);
+begin
+    ResetChessboardToStandart();
+    PageControl1.ActivePageIndex := 1;
+end;
+
+procedure TFormChessMain.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+const
+    Arrows = [VK_DOWN, VK_UP, VK_LEFT, VK_RIGHT];
+
+begin
+    if (Key in Arrows) then
+    begin
+        if Game.GameEnded and PanelForReplay.Visible then
+            case Key of
+                VK_RIGHT:
+                    ImageReplayNextClick(Self);
+                VK_LEFT:
+                    ImageReplayPrevClick(Self);
+                VK_UP:
+                    ImageReplayStartClick(Self);
+                VK_DOWN:
+                    ImageReplayEndClick(Self);
+            end;
+        Key := 0;
+    end;
+end;
+
+procedure TFormChessMain.FormKeyPress(Sender: TObject; var Key: Char);
+const
+    KeysForBack = [#8, #27];
+
+begin
+    if (PageControl1.ActivePageIndex = 1) and (Key in KeysForBack) and
+      ButtonExit.Visible then
+        ButtonExitClick(Self);
+end;
+
+// *******************************
+// Other
+
+procedure TFormChessMain.NAuthorClick(Sender: TObject);
+begin
+    ShowMessage
+      ('Курсовая работа по дисциплине "Основы алгоритмизации и программирования".'
+      + #10#13 + 'Курс 1' + #10#13 + 'Панев Александр, гр. 051007' + #10#13 +
+      'Минск, 2021');
+end;
+
+procedure TFormChessMain.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+begin
+    CanClose := GameIsSaved or (MessageDlg('Вы уверены, что хотите выйти из программы?' + #10#13
+      + 'Все несохранённые данные будут утеряны.', mtConfirmation,
+      [mbYes, mbNo], 0) = mrYes);
+end;
+
+function TFormChessMain.MultPixels(PixQuant: Integer): Integer;
+begin
+    Result := Round(PixQuant * MultPix);
+end;
+
+function FindRegEx(SInput, StrRegEx: String;
+  StrIfNothingFound: String = ''): TArrStr;
+var
+    ArrStr: TArrStr;
+    RegEx: TRegEx;
+    MatchCollection: TMatchCollection;
+    i: Integer;
+begin
+    RegEx := TRegEx.Create(StrRegEx);
+    MatchCollection := RegEx.Matches(SInput);
+    SetLength(ArrStr, MatchCollection.Count);
+    for i := 0 to MatchCollection.Count - 1 do
+        ArrStr[i] := MatchCollection.Item[i].Value;
+
+    if (Length(ArrStr) < 1) then
+        ArrStr := [StrIfNothingFound];
+    Result := ArrStr;
+end;
+
+constructor TFigure.Create();
+begin
+    inherited Create(FormChessMain);
+    Proportional := True;
+    FIsOnDrag := False;
+    Center := True;
+    FPsevdoKilled := False;
+end;
+
+end.

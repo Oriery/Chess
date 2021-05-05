@@ -1,0 +1,60 @@
+unit UnitReplayAndNotation;
+
+interface
+
+uses
+    Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
+    System.Classes, Vcl.Graphics,
+    Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls,
+    Vcl.Imaging.jpeg, Vcl.ActnMan, Vcl.ActnColorMaps, Vcl.ExtDlgs, Vcl.ComCtrls,
+    Vcl.Imaging.pngimage, Vcl.Menus, System.UITypes, System.RegularExpressions, Math;
+
+procedure WriteOneMoveOfGame();
+
+implementation
+
+uses UnitMainForm;
+
+procedure WriteOneMoveOfGame();
+var
+    i, j: Byte;
+
+begin
+    if not WhiteIsToMove then
+    begin
+        SetLength(Game.AllBoards, Length(Game.AllBoards) + 1);
+
+        // обнуление чёрных
+        for i := 1 to 8 do
+            for j := 1 to 8 do
+            begin
+                with Game.AllBoards[High(Game.AllBoards)][1][i][j] do
+                begin
+                    CellFigureName := '0';
+                    CellFigureColorIsWhite := False;
+                    CellFigureHasMoved := False;
+                end;
+            end;
+    end;
+
+    for i := 1 to 8 do
+        for j := 1 to 8 do
+        begin
+            with Game.AllBoards[High(Game.AllBoards)][Ord(WhiteIsToMove)][i][j] do
+            begin
+                CellFigureName := BoardReal[i][j].CellFigureName;
+                if CellFigureName <> '0' then
+                begin
+                    CellFigureColorIsWhite := BoardReal[i][j].CellFigureColorIsWhite;
+                    CellFigureHasMoved := ArrOfFigures[BoardReal[i][j].CellFigureIndex].FHasMoved;
+                end
+                else
+                begin
+                    CellFigureColorIsWhite := False;
+                    CellFigureHasMoved := False;
+                end;
+            end;
+        end;
+end;
+
+end.

@@ -1,0 +1,7 @@
+{TODO : Заменить if ... then IsLegal := True на IsLegal := ...}
+{TODO : 3 povtoreniy hoda}
+{TODO : Не давать ходить связанной фигуре}
+{TODO : Когда рокировка, нужно проверять простреливаемость клеток между ладьёй и королём}
+{TODO : Перехватывание пешки не забыть сделать.}
+{DONE : Make Escape and Backspace work as Back Button}
+{DONE -cBeauty : Blur Background}

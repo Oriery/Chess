@@ -1,0 +1,31 @@
+unit UnitMyMessageBoxes;
+
+interface
+
+uses
+    Winapi.Windows, System.Classes, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
+    Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.Menus,
+    UnitWorkWithFiles, UnitCreatingFigures, UnitReplayAndNotation, UnitSetupBoard,
+    UnitTimer, UnitGrabbingFigures, UnitMakeAMove, UnitPawnTransformation,
+    UnitInterfaceDuringGame, Vcl.Imaging.pngimage, Vcl.Imaging.jpeg;
+
+implementation
+
+uses UnitMainForm;
+
+function MyMessageBoxYesNo(TextMessage,CaptionWindow: String; IsWarning: Boolean = False) : Boolean;
+var
+   Tip: Integer;
+   Answer: Boolean;
+
+begin
+    Tip:=MB_YESNO;
+    if IsWarning then
+        Tip := Tip + MB_ICONWARNING
+    else
+        Tip := Tip + MB_ICONQUESTION;
+    Answer := MessageBox(FormMain.Handle,Pchar(TextMessage),Pchar(CaptionWindow),Tip) = IDYES;
+    Result := Answer;
+end;
+
+end.

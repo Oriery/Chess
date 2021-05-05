@@ -1,0 +1,72 @@
+unit UnitInterfaceDuringGame;
+
+interface
+
+uses
+    Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
+    System.Classes, Vcl.Graphics,
+    Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls,
+    Vcl.Imaging.jpeg, Vcl.ActnMan, Vcl.ActnColorMaps, Vcl.ExtDlgs, Vcl.ComCtrls,
+    Vcl.Imaging.pngimage, Vcl.Menus, System.UITypes, System.RegularExpressions, Math;
+
+procedure ResignGame();
+procedure ExitToMainMenu();
+procedure DrawGame();
+
+implementation
+
+uses UnitMainForm, UnitAfterGameFinished, UnitSetupBoard;
+
+procedure ResignGame();
+var
+    WhoResigns: String;
+
+begin
+    if WhiteIsToMove then
+        WhoResigns := 'Белые'
+    else
+        WhoResigns := 'Чёрные';
+
+    if MessageDlg(WhoResigns + ' сдаются?', mtConfirmation,
+      [mbYes, mbNo], 0) = mrYes then
+        if WhiteIsToMove then
+            DoAfterGameEnded(Black, Resign)
+        else
+            DoAfterGameEnded(White, Resign);
+end;
+
+procedure ExitToMainMenu();
+var
+    CanExit: Boolean;
+
+begin
+    with FormMain do
+    begin
+        CanExit := GameIsSaved or
+          (MessageDlg('Вы уверены, что хотите закрыть шахматную партию?' + #10#13 +
+          'Все несохранённые данные будут утеряны.', mtConfirmation, [mbYes, mbNo],
+          0) = mrYes);
+
+        if CanExit then
+        begin
+            TimerForTimer.Enabled := False;
+
+            PageControl1.ActivePageIndex := 0;
+            ClearChessboard();
+            SetLength(ArrOfFigures, 0);
+
+            PanelGameEnded.Visible := False;
+            PanelChoiceOfTransPawnForBlack.Visible := False;
+            PanelChoiceOfTransPawnForWhite.Visible := False;
+        end;
+    end;
+end;
+
+procedure DrawGame();
+begin
+    if MessageDlg('Завершить партию с результатом "Ничья"?', mtConfirmation,
+      [mbYes, mbNo], 0) = mrYes then
+        DoAfterGameEnded(Draw, DrawByAgreement);
+end;
+
+end.

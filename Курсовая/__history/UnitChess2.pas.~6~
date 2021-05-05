@@ -1,0 +1,88 @@
+unit UnitChess2;
+
+interface
+
+uses System.SysUtils,Vcl.ExtCtrls;
+
+type
+    TFigure = Class(TImage)
+    public
+        FFigureType: Char;
+        FFigureInd, FPosOnBoardX, FPosOnBoardY: Byte;
+        FIsWhite, FIsOnDrag: Boolean;
+        FHasMoved, FPsevdoKilled: Boolean;
+    published
+        constructor Create();
+    End;
+
+    TCell = Record
+        CellFigureName: Char; // '0'(ничего), K, Q, R, N, B, P
+        CellFigureColorIsWhite: Boolean;
+        CellFigureIndex: Byte;
+    End;
+
+    TBoard = Array [1 .. 8, 1 .. 8] of TCell;
+
+procedure MoveFigureToCell(var Board: TBoard; Figure: TFigure;
+    PosX, PosY: Byte; FigureIsReal: Boolean = True);
+
+implementation
+
+uses Chess_Main_Form;
+
+procedure MoveFigureToCell(var Board: TBoard; Figure: TFigure;
+  PosX, PosY: Byte; FigureIsReal: Boolean = True);
+var
+    CoordTemp: TCoord;
+
+begin
+    with FormChessMain do
+    with Figure do
+    begin
+        with Board[FPosOnBoardX][FPosOnBoardY] do
+            CellFigureName := '0';
+
+        if FigureIsReal then
+        begin
+            FPosOnBoardX := PosX;
+            FPosOnBoardY := PosY;
+        end
+        else if Board[PosX][PosY].CellFigureName <> '0' then
+            ArrOfFigures[Board[PosX][PosY].CellFigureIndex]
+              .FPsevdoKilled := True;
+
+        with Board[PosX][PosY] do
+        begin
+            CellFigureColorIsWhite := FIsWhite;
+            CellFigureName := FFigureType;
+            CellFigureIndex := FFigureInd;
+        end;
+
+        if FigureIsReal then
+        begin
+            CoordTemp := CountCoordinatesOfFigure(PosX, PosY);
+
+            if NowIsCastling and (FFigureType = 'R') then
+            begin
+                Top := CoordTemp.Top;
+                Left := CoordTemp.Left;
+            end
+            else
+                MoveFigureWithAnimation(Figure, CoordTemp.Top, CoordTemp.Left);
+
+            Width := MultPixels(SizeOfFigure);
+            Height := MultPixels(SizeOfFigure);
+        end;
+    end;
+end;
+
+constructor TFigure.Create();
+begin
+    inherited Create(FormChessMain);
+    Proportional := True;
+    FIsOnDrag := False;
+    Center := True;
+    FPsevdoKilled := False;
+end;
+
+end.

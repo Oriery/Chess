@@ -1,0 +1,160 @@
+unit UnitSetupBoard;
+
+interface
+
+uses
+    Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
+    System.Classes, Vcl.Graphics,
+    Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls,
+    Vcl.Imaging.jpeg, Vcl.ActnMan, Vcl.ActnColorMaps, Vcl.ExtDlgs, Vcl.ComCtrls,
+    Vcl.Imaging.pngimage, Vcl.Menus, System.UITypes, System.RegularExpressions, Math;
+
+procedure StartNewGameAfterPrevFinished();
+procedure SetupBoardOnStartOfForm();
+procedure ResetChessboardToStandart();
+procedure ClearChessboard();
+
+implementation
+
+uses UnitMainForm, UnitCreatingFigures;
+
+
+procedure ResetChessboardToStandart();
+begin
+    with FormMain do
+    begin
+        ClearChessboard();
+
+        PlaceFiguresOnStandartPlace();
+
+        GameIsSaved := True;
+        WhiteIsToMove := True;
+        NowIsTakingOnAisle := False;
+        NowIsCastling := False;
+        NowCheck := False;
+
+        SetLength(Game.AllBoards, 0);
+        Game.GameEnded := False;
+
+        Game.TimeRemainingW := DefaultTimeOnTimer;
+        Game.TimeRemainingB := DefaultTimeOnTimer;
+        ShowTimeOnTimer(True);
+        ShowTimeOnTimer(False);
+        ImagePauseAndStartTimer.Picture := ImagePause.Picture;
+        ImagePauseAndStartTimer.Visible := False;
+        LabelPause.Visible := False;
+
+
+        ListBoxNotationW.Clear();
+        ListBoxNotationB.Clear();
+        ListBoxNotationNum.Clear();
+
+        TimerForTimer.Enabled := False;
+
+        PanelForReplay.Visible := False;
+        PanelChoiceOfTransPawnForBlack.Visible := False;
+        PanelChoiceOfTransPawnForWhite.Visible := False;
+        PanelGameEnded.Visible := False;
+
+        LastMove := '    ';
+
+        ItemIndexW := -1;
+        ItemIndexB := -1;
+
+        NowAnimating := False;
+        ButtonResign.Enabled := False;
+        ButtonDraw.Enabled := False;
+
+        NSaveAs.Enabled := False;
+    end;
+end;
+
+procedure ClearChessboard();
+var
+    i, j: Integer;
+
+begin
+    for i := 0 to High(ArrOfFigures) do
+        if ArrOfFigures[i] <> nil then
+            ArrOfFigures[i].Destroy;
+    SetLength(ArrOfFigures, 0);
+
+    for i := 1 to 8 do
+        for j := 1 to 8 do
+            BoardReal[i][j].CellFigureName := '0';
+end;
+
+procedure SetupBoardOnStartOfForm();
+begin
+    with FormMain do
+    begin
+        PageControl1.ActivePageIndex := 0;
+
+        GameIsSaved := True;
+
+        SizeOfFigure := Round(SizeOfCell * SizeOfFigureComparedToCell);
+        ShiftOfFigure := Round(SizeOfCell * (1 - SizeOfFigureComparedToCell) / 2);
+
+        MultPix := LabelToMeasureScreenOfUser.Width / 100;
+
+        Screen.Cursors[1] :=
+          HCursor(LoadCursorFromFile('Wii Pointer Open Hand.cur'));
+        Screen.Cursors[2] := HCursor(LoadCursorFromFile('Wii Pointer Grab.cur'));
+        Screen.Cursors[3] := HCursor(LoadCursorFromFile('Wii Pointer.cur'));
+        Screen.Cursor := 3;
+
+        with ImageBackGround do
+        begin
+            Left := 0;
+            Top := -Round(FormMain.ClientHeight / 4);
+            Width := FormMain.ClientWidth;
+            Height := Round(FormMain.ClientHeight * 16 / 9);
+        end;
+
+        With PanelForBoard do
+        begin
+            Top := MultPixels(TopOfBoard);
+            Left := MultPixels(LeftOFBoard);
+            Width := MultPixels(WidthOfBoard);
+            Height := MultPixels(WidthOfBoard);
+        end;
+
+        With ImageBoard do
+        begin
+            Top := 0;
+            Left := 0;
+            Width := MultPixels(WidthOfBoard);
+            Height := MultPixels(WidthOfBoard);
+        end;
+
+        ResetChessboardToStandart();
+    end;
+end;
+
+procedure StartNewGameAfterPrevFinished();
+var
+    SaidNoSaving: Boolean;
+
+begin
+    SaidNoSaving := False;
+
+    with FormMain do
+    begin
+        if not GameIsSaved then
+            if MessageDlg('Вы хотите сохранить текущую партию?' +
+            #10#13 + 'Иначе после открытия файла текущая партия будет удалена.',
+            mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+                NSaveAsClick(FormMain)
+            else
+                SaidNoSaving := True;
+
+        if (GameIsSaved or SaidNoSaving or (MessageDlg('Вы уверены, что хотите начать новую игру?' + #10#13 +
+            'Текущая игра будет удалена.', mtConfirmation, [mbYes, mbCancel], 0) = mrYes)) then
+        begin
+            ResetChessboardToStandart();
+            PanelGameEnded.Visible := False;
+        end;
+    end;
+end;
+
+end.

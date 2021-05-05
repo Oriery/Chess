@@ -1,0 +1,139 @@
+unit UnitReplayAndNotation;
+
+interface
+
+uses
+    Winapi.Windows;
+
+procedure WriteOneMoveOfGame();
+procedure ShowReplay();
+procedure CorrectLengthOfScrollboxForNotation();
+
+implementation
+
+uses UnitMainForm, UnitCreatingFigures;
+
+procedure WriteOneMoveOfGame();
+var
+    i, j: Byte;
+
+begin
+    if not WhiteIsToMove then
+    begin
+        SetLength(Game.AllBoards, Length(Game.AllBoards) + 1);
+
+        // обнуление чёрных
+        for i := 1 to 8 do
+            for j := 1 to 8 do
+            begin
+                with Game.AllBoards[High(Game.AllBoards)][1][i][j] do
+                begin
+                    CellFigureName := '0';
+                    CellFigureColorIsWhite := False;
+                    CellFigureHasMoved := False;
+                end;
+            end;
+    end;
+
+    for i := 1 to 8 do
+        for j := 1 to 8 do
+        begin
+            with Game.AllBoards[High(Game.AllBoards)][Ord(WhiteIsToMove)][i][j] do
+            begin
+                CellFigureName := BoardReal[i][j].CellFigureName;
+                if CellFigureName <> '0' then
+                begin
+                    CellFigureColorIsWhite := BoardReal[i][j].CellFigureColorIsWhite;
+                    CellFigureHasMoved := ArrOfFigures[BoardReal[i][j].CellFigureIndex].FHasMoved;
+                end
+                else
+                begin
+                    CellFigureColorIsWhite := False;
+                    CellFigureHasMoved := False;
+                end;
+            end;
+        end;
+end;
+
+procedure ShowReplay();
+var
+    BoardTemp: Array [1 .. 8, 1 .. 8] of TCellForReplay;
+    i, j, k: Byte;
+    EmptySpaceInArrayNotFound: Boolean;
+    ColorOfFigure: Char;
+
+begin
+    // Copy board
+    for i := 1 to 8 do
+        for j := 1 to 8 do
+        begin
+            with Game.AllBoards
+              [ItemIndexW + ItemIndexB + 1][Ord(ItemIndexW = -1)][i][j] do
+            begin
+                BoardTemp[i][j].CellFigureName := CellFigureName;
+                BoardTemp[i][j].CellFigureColorIsWhite := CellFigureColorIsWhite;
+                BoardTemp[i][j].CellFigureHasMoved := CellFigureHasMoved;
+            end;
+        end;
+
+    with FormMain do
+    begin
+    // Delete what should be deleted
+        for i := 1 to 8 do
+            for j := 1 to 8 do
+                if (BoardReal[i][j].CellFigureName <> '0') and
+                  ((BoardTemp[i][j].CellFigureName <> BoardReal[i][j]
+                  .CellFigureName) or (BoardTemp[i][j].CellFigureColorIsWhite <>
+                  BoardReal[i][j].CellFigureColorIsWhite)
+                  or (BoardTemp[i][j].CellFigureHasMoved <>
+                  ArrOfFigures[BoardReal[i][j].CellFigureIndex].FHasMoved)) then
+                begin
+                    KillFigureOnCell(i, j, False);
+                end;
+
+        // Create what should be created
+        for i := 1 to 8 do
+            for j := 1 to 8 do
+                if (BoardTemp[i][j].CellFigureName <> BoardReal[i][j].CellFigureName)
+                then
+                begin
+                    k := 0;
+                    EmptySpaceInArrayNotFound := True;
+                    while (k < Length(ArrOfFigures)) and
+                      EmptySpaceInArrayNotFound do
+                    begin
+                        if ArrOfFigures[k] <> nil then
+                            Inc(k)
+                        else
+                            EmptySpaceInArrayNotFound := False;
+                    end;
+
+                    if BoardTemp[i][j].CellFigureColorIsWhite then
+                        ColorOfFigure := 'W'
+                    else
+                        ColorOfFigure := 'B';
+
+                    CreateOneFigure(ArrOfFigures[k], k, i, j,
+                      BoardTemp[i][j].CellFigureName, ColorOfFigure, BoardTemp[i][j].CellFigureHasMoved);
+                end;
+    end;
+end;
+
+procedure CorrectLengthOfScrollboxForNotation();
+var
+    Rect: TRect;
+
+begin
+    with FormMain do
+        begin
+        Rect := ListBoxNotationW.ItemRect(ListBoxNotationW.Count - 1);
+        if Rect.Top + Rect.Height > ListBoxNotationW.Top + ListBoxNotationW.Height then
+        begin
+            ListBoxNotationW.Height := ListBoxNotationW.Height + 50;
+            ListBoxNotationB.Height := ListBoxNotationB.Height + 50;
+            ListBoxNotationNum.Height := ListBoxNotationNum.Height + 50;
+        end;
+    end;
+end;
+
+end.

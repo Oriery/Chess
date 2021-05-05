@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>1899.12.30 00:00:00.000.104,C:\Users\Aleksandr\Documents\Embarcadero\Studio\Projects\Project1.dproj=C:\Users\Aleksandr\Documents\Embarcadero\Studio\Projects\Chess_Kurs.dproj</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.880,C:\Users\Aleksandr\Documents\Embarcadero\Studio\Projects\Unit5.dfm=C:\Users\Aleksandr\Documents\Embarcadero\Studio\Projects\Chess_Main_Menu.dfm</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.880,C:\Users\Aleksandr\Documents\Embarcadero\Studio\Projects\Unit5.pas=C:\Users\Aleksandr\Documents\Embarcadero\Studio\Projects\Chess_Main_Menu.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.985,=C:\Users\Aleksandr\Documents\Embarcadero\Studio\Projects\Unit5.pas</Transaction>
+  </Transactions>
+</BorlandProject>
