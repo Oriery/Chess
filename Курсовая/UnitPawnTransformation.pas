@@ -10,7 +10,7 @@ procedure EndPawnTransformation(NewTypeOfFigure: Char);
 
 implementation
 
-uses UnitMainForm, UnitSetupBoard, UnitMakeAMove;
+uses UnitMainForm, UnitSetupBoard, UnitMakeAMove, UnitReplayAndNotation;
 
 procedure PawnTransformation(Figure: TFigure);
 begin

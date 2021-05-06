@@ -5,6 +5,10 @@ interface
 uses
     System.SysUtils;
 
+const
+    DefaultTimeOnTimer = 900;
+    DefaultAddingOnTimer = 10;
+
 procedure ShowTimeOnTimer(IsWhite: Boolean);
 procedure TimerEvery1Second();
 procedure PauseAndStartTimer();

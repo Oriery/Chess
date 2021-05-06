@@ -3,7 +3,7 @@ unit UnitMakeAMove;
 interface
 
 uses
-    System.SysUtils, UnitCreatingFigures, UnitSetupBoard;
+    System.SysUtils, UnitCreatingFigures, UnitSetupBoard, Vcl.ExtCtrls;
 
 procedure MakeAMove(Figure: TFigure;
   NextPosOnBoardX, NextPosOnBoardY: Byte);
@@ -14,10 +14,20 @@ procedure KillFigureOnCell(PosX, PosY: Byte;
   ShouldWriteNotation: Boolean = True);
 procedure DoOneFrameOfAnimation();
 
+var
+    NowIsTakingOnAisle, NowIsCastling: Boolean;
+    LastMove: String[4];
+    NowAnimating: Boolean;
+
 implementation
 
 uses UnitMainForm, UnitCheckChecksMatesAndStalemates, UnitReplayAndNotation,
     UnitTimer, UnitGrabbingFigures, UnitPawnTransformation;
+
+var
+    ImgToMoveWithAnimationGlobal: TImage;
+    XPS_AnimationOfImg, YPS_AnimationOfImg, NeedTop_AnimationOfImg,
+        NeedLeft_AnimationOfImg: SmallInt;
 
 procedure MoveFigureWithAnimation(ImgToMoveWithAnimation
   : TFigure; NeedTop, NeedLeft: SmallInt; AnimationTime: Single = 0.1); forward;

@@ -19,9 +19,18 @@ procedure MouseFinishesToGrabFigure(Sender: TObject; Button: TMouseButton;
 function CountCoordinatesOfFigure(PosX, PosY: Byte): TCoord;
 procedure ScaleFigure(Figure: TFigure; Scale: Single);
 
+var
+    ShiftOfFigure: Byte;
+
 implementation
 
-uses UnitMainForm, UnitTimer, UnitCheckMoveIsLegal, UnitMakeAMove;
+uses UnitMainForm, UnitTimer, UnitCheckMoveIsLegal, UnitMakeAMove, UnitSetupBoard;
+
+const
+    ScaleWhileFigureOnDrag = 1.08;
+
+var
+    DragShiftX, DragShiftY: SmallInt;
 
 procedure MouseStartsToGrabFigure(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);

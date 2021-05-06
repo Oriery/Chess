@@ -13,7 +13,8 @@ procedure SaveToFileAs();
 
 implementation
 
-uses UnitMainForm, UnitSetupBoard, UnitReplayAndNotation, UnitTimer, UnitMyMessageBoxes;
+uses UnitMainForm, UnitSetupBoard, UnitReplayAndNotation, UnitTimer, UnitMyMessageBoxes,
+    UnitMakeAMove;
 
 procedure DoAfterOpenedGameFromFile(); forward;
 procedure ClickListBoxToKillBug(); forward;

@@ -14,6 +14,18 @@ type
 
     TBoard = Array [1 .. 8, 1 .. 8] of TCell;
 
+const
+    TopOfBoard = 50;
+    LeftOFBoard = 30;
+    WidthOfBoard = 546;
+    WidthOfEdgePlusAdjust = 6 + 3;
+    SizeOfCell = 66;
+    // ќригинальное изображение 800*800 имеет бортики шириной в 10 и ширину
+    // клетки вместе с перегородкой 110 (перегородка 10).
+    // “о есть по кра€м есть и перегородка (10), и бортик (10) - итого 20.
+    // »зображение в программе имеет размер 3/5 от оригинала (480x480).
+    SizeOfFigureComparedToCell = 0.8;
+
 procedure StartNewGameAfterPrevFinished();
 procedure SetupBoardOnStartOfForm();
 procedure ResetChessboardToStandart();
@@ -21,7 +33,8 @@ procedure ClearChessboard();
 
 implementation
 
-uses UnitMainForm, UnitCreatingFigures, UnitTimer, UnitMyMessageBoxes;
+uses UnitMainForm, UnitCreatingFigures, UnitTimer, UnitMyMessageBoxes, UnitReplayAndNotation,
+    UnitGrabbingFigures, UnitMakeAMove;
 
 
 procedure ResetChessboardToStandart();

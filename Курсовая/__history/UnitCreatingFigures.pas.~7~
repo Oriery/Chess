@@ -1,0 +1,140 @@
+unit UnitCreatingFigures;
+
+interface
+
+uses
+    System.SysUtils, Vcl.ExtCtrls;
+
+type
+    TFigure = Class(TImage)
+    public
+        FFigureType: Char;
+        FFigureInd, FPosOnBoardX, FPosOnBoardY: Byte;
+        FIsWhite, FIsOnDrag: Boolean;
+        FHasMoved, FPsevdoKilled: Boolean;
+    published
+        constructor Create();
+    End;
+
+procedure PlaceFiguresOnStandartPlace();
+procedure CreateOneFigure(var Figure: TFigure;
+  FigIndex, PosX, PosY: Byte; FigType, ColorOfFig: Char; HasMoved: Boolean = False);
+
+implementation
+
+uses UnitMainForm, UnitGrabbingFigures;
+
+procedure PlaceFiguresOnStandartPlace();
+var
+    i: Integer;
+
+begin
+    SetLength(ArrOfFigures, 32);
+
+    CreateOneFigure(ArrOfFigures[0], 0, 5, 1, 'K', 'W');
+    CreateOneFigure(ArrOfFigures[1], 1, 4, 1, 'Q', 'W');
+    CreateOneFigure(ArrOfFigures[16], 16, 5, 8, 'K', 'B');
+    CreateOneFigure(ArrOfFigures[17], 17, 4, 8, 'Q', 'B');
+
+    for i := 8 to 15 do
+        CreateOneFigure(ArrOfFigures[i], i, i - 7, 2, 'P', 'W');
+
+    for i := 24 to 31 do
+        CreateOneFigure(ArrOfFigures[i], i, i - 23, 7, 'P', 'B');
+
+    CreateOneFigure(ArrOfFigures[2], 2, 3, 1, 'B', 'W');
+    CreateOneFigure(ArrOfFigures[3], 3, 6, 1, 'B', 'W');
+    CreateOneFigure(ArrOfFigures[4], 4, 2, 1, 'N', 'W');
+    CreateOneFigure(ArrOfFigures[5], 5, 7, 1, 'N', 'W');
+    CreateOneFigure(ArrOfFigures[6], 6, 1, 1, 'R', 'W');
+    CreateOneFigure(ArrOfFigures[7], 7, 8, 1, 'R', 'W');
+
+    CreateOneFigure(ArrOfFigures[18], 18, 3, 8, 'B', 'B');
+    CreateOneFigure(ArrOfFigures[19], 19, 6, 8, 'B', 'B');
+    CreateOneFigure(ArrOfFigures[20], 20, 2, 8, 'N', 'B');
+    CreateOneFigure(ArrOfFigures[21], 21, 7, 8, 'N', 'B');
+    CreateOneFigure(ArrOfFigures[22], 22, 1, 8, 'R', 'B');
+    CreateOneFigure(ArrOfFigures[23], 23, 8, 8, 'R', 'B');
+end;
+
+procedure CreateOneFigure(var Figure: TFigure;
+  FigIndex, PosX, PosY: Byte; FigType, ColorOfFig: Char; HasMoved: Boolean = False);
+var
+    CoordTemp: TCoord;
+
+begin
+    Figure := TFigure.Create();
+    with FormMain do
+        with Figure do
+        begin
+            FFigureType := FigType;
+            FPosOnBoardX := PosX;
+            FPosOnBoardY := PosY;
+            FIsWhite := UpperCase(ColorOfFig + '') = 'W';
+            FHasMoved := HasMoved;
+
+            if FIsWhite then
+                case FFigureType of
+                    'Q':
+                        Picture := ImageWQ.Picture;
+                    'R':
+                        Picture := ImageWR.Picture;
+                    'B':
+                        Picture := ImageWB.Picture;
+                    'N':
+                        Picture := ImageWN.Picture;
+                    'P':
+                        Picture := ImageWP.Picture;
+                    'K':
+                        Picture := ImageWK.Picture;
+                end
+            else
+                case FFigureType of
+                    'Q':
+                        Picture := ImageBQ.Picture;
+                    'R':
+                        Picture := ImageBR.Picture;
+                    'B':
+                        Picture := ImageBB.Picture;
+                    'N':
+                        Picture := ImageBN.Picture;
+                    'P':
+                        Picture := ImageBP.Picture;
+                    'K':
+                        Picture := ImageBK.Picture;
+                end;
+
+            Parent := PanelForBoard;
+            FFigureInd := FigIndex;
+
+            CoordTemp := CountCoordinatesOfFigure(PosX, PosY);
+            Top := CoordTemp.Top;
+            Left := CoordTemp.Left;
+            Width := MultPixels(SizeOfFigure);
+            Height := MultPixels(SizeOfFigure);
+
+            with BoardReal[PosX][PosY] do
+            begin
+                CellFigureColorIsWhite := FIsWhite;
+                CellFigureName := FFigureType;
+                CellFigureIndex := FigIndex;
+            end;
+
+            OnMouseDown := FigureMouseDown;
+            OnMouseMove := FigureMouseMove;
+            OnMouseUp := FigureMouseUp;
+            OnMouseEnter := FigureMouseEnter;
+            OnMouseLeave := FigureMouseLeave;
+        end;
+end;
+
+constructor TFigure.Create();
+begin
+    inherited Create(FormMain);
+    Proportional := True;
+    FIsOnDrag := False;
+    Center := True;
+    FPsevdoKilled := False;
+end;
+
+end.

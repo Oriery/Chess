@@ -5,6 +5,12 @@ interface
 uses
     Winapi.Windows;
 
+type
+    TCellForReplay = Record
+        CellFigureName: Char;
+        CellFigureColorIsWhite, CellFigureHasMoved: Boolean;
+    End;
+
 procedure WriteOneMoveOfGame();
 procedure ShowReplay();
 procedure CorrectLengthOfScrollboxForNotation();
@@ -13,6 +19,10 @@ procedure ReplayGoToEnd();
 procedure ReplayGoToStart();
 procedure ReplayGoToNext();
 procedure ReplayGoToPrev();
+
+var
+    ItemIndexW, ItemIndexB: SmallInt;
+    BufferFor1Move: String;
 
 implementation
 

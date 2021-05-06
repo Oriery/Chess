@@ -20,6 +20,9 @@ procedure PlaceFiguresOnStandartPlace();
 procedure CreateOneFigure(var Figure: TFigure;
   FigIndex, PosX, PosY: Byte; FigType, ColorOfFig: Char; HasMoved: Boolean = False);
 
+var
+    SizeOfFigure: SmallInt;
+
 implementation
 
 uses UnitMainForm, UnitGrabbingFigures;

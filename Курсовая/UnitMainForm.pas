@@ -10,13 +10,6 @@ uses
     UnitInterfaceDuringGame, Vcl.Imaging.pngimage, Vcl.Imaging.jpeg, UnitMyMessageBoxes;
 
 type
-
-    TCellForReplay = Record
-        CellFigureName: Char;
-        CellFigureColorIsWhite, CellFigureHasMoved: Boolean;
-    End;
-
-
     TGame = Record
         AllBoards: Array of Array [0 .. 1] of Array [1 .. 8, 1 .. 8]
             of TCellForReplay; // move - w/b - row - file
@@ -139,38 +132,13 @@ type
         function MultPixels(PixQuant: Integer): Integer;
     end;
 
-const
-    TopOfBoard = 50;
-    LeftOFBoard = 30;
-    WidthOfBoard = 546;
-    WidthOfEdgePlusAdjust = 6 + 3;
-    SizeOfCell = 66;
-    // ќригинальное изображение 800*800 имеет бортики шириной в 10 и ширину
-    // клетки вместе с перегородкой 110 (перегородка 10).
-    // “о есть по кра€м есть и перегородка (10), и бортик (10) - итого 20.
-    // »зображение в программе имеет размер 3/5 от оригинала (480x480).
-    SizeOfFigureComparedToCell = 0.8;
-    ScaleWhileFigureOnDrag = 1.08;
-    DefaultTimeOnTimer = 900;
-    DefaultAddingOnTimer = 10;
-
 var
     FormMain: TFormMain;
-    SizeOfFigure, ShiftOfFigure: Byte;
-    DragShiftX, DragShiftY, ItemIndexW, ItemIndexB: SmallInt;
     ArrOfFigures: Array Of TFigure;
     BoardReal: TBoard;
-    GameIsSaved, NowIsTakingOnAisle, NowIsCastling, NowCheck, WhiteIsToMove: Boolean;
-    LastMove: String[4];
+    GameIsSaved, NowCheck, WhiteIsToMove: Boolean;
     MultPix: Single;
     Game: TGame;
-
-    BufferFor1Move: String;  //Notation
-
-    NowAnimating: Boolean;
-    ImgToMoveWithAnimationGlobal: TImage;
-    XPS_AnimationOfImg, YPS_AnimationOfImg, NeedTop_AnimationOfImg,
-      NeedLeft_AnimationOfImg: SmallInt;
 
 implementation
 

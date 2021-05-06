@@ -12,7 +12,7 @@ procedure CheckIfCheckOrMateOrStaleMate();
 
 implementation
 
-uses UnitMainForm, UnitAfterGameFinished, UnitCheckMoveIsLegal;
+uses UnitMainForm, UnitAfterGameFinished, UnitCheckMoveIsLegal, UnitReplayAndNotation;
 
 function CheckIfThereAreAvailableMoves(): Boolean; forward;
 
