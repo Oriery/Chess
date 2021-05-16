@@ -84,6 +84,13 @@ type
         OpenDialog1: TOpenDialog;
         ButtonSaveGame: TButton;
         ButtonStartNewGame: TButton;
+        ImageGo: TImage;
+        ImageBoardDark: TImage;
+        ImageBoardLight: TImage;
+    LabelNotation: TLabel;
+    PanelMainMenuForButtons: TPanel;
+    LabelByAuthor: TLabel;
+    NRules: TMenuItem;
         procedure FormCreate(Sender: TObject);
         procedure ButtonMenuNewGameClick(Sender: TObject);
         procedure FormKeyPress(Sender: TObject; var Key: Char);
@@ -121,6 +128,8 @@ type
         procedure ButtonMenuOpenGameClick(Sender: TObject);
         procedure ButtonSaveGameClick(Sender: TObject);
         procedure ButtonStartNewGameClick(Sender: TObject);
+    procedure LabelByAuthorClick(Sender: TObject);
+    procedure NRulesClick(Sender: TObject);
 
     public
         procedure FigureMouseDown(Sender: TObject; Button: TMouseButton;
@@ -163,6 +172,11 @@ end;
 procedure TFormMain.ButtonReplayClick(Sender: TObject);
 begin
     StartReplayAfterGameFinished();
+end;
+
+procedure TFormMain.LabelByAuthorClick(Sender: TObject);
+begin
+    NAuthorClick(Self);
 end;
 
 procedure TFormMain.LabelPauseClick(Sender: TObject);
@@ -236,14 +250,25 @@ end;
 
 procedure TFormMain.FigureMouseEnter(Sender: TObject);
 begin
-    if not Game.GameEnded then
+    if not Game.GameEnded and ((Sender as TFigure).FIsWhite = WhiteIsToMove) then
         Screen.Cursor := 1;
 end;
 
 procedure TFormMain.FigureMouseLeave(Sender: TObject);
+var
+    Button: TMouseButton;
+    Shift: TShiftState;
+
 begin
     if not Game.GameEnded then
         Screen.Cursor := 3;
+
+    if (Sender as TFigure).FIsOnDrag then
+    begin
+        Button := mbLeft;
+        Shift := KeysToShiftState(0);
+        MouseFinishesToGrabFigure(Sender, Button, Shift, 0, 0);
+    end;
 end;
 
 // *******************************
@@ -387,6 +412,12 @@ end;
 
 // *******************************
 // Other
+
+procedure TFormMain.NRulesClick(Sender: TObject);
+begin
+    MyMessageBoxInfo('Правила игры',
+    'Вы можете найти документ (.pdf) с полными шахматными правилами в папке с игрой.');
+end;
 
 procedure TFormMain.NAuthorClick(Sender: TObject);
 begin

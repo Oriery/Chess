@@ -2,17 +2,17 @@
 <BorlandProject>
 	<Transactions>
     <Transaction>1899.12.30 00:00:00.000.631,C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas=C:\Users\Aleksandr\Desktop\Курсовая\UnitAfterGameFinished.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.898,=C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.097,=C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.627,=C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.593,=C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.097,=C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.200,=C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.156,=C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.879,C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas=C:\Users\Aleksandr\Desktop\Курсовая\UnitWorkWithFiles.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.159,=C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.512,C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas=C:\Users\Aleksandr\Desktop\Курсовая\UnitCheckChecksMatesAndStalemates.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.142,C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas=C:\Users\Aleksandr\Desktop\Курсовая\CreatingFigures.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.962,C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas=C:\Users\Aleksandr\Desktop\Курсовая\UnitGrabbingFigures.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.159,=C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.898,=C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.278,=C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.832,=C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.156,=C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.759,=C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.193,C:\Users\Aleksandr\Desktop\Курсовая\Chess_Game_1_vs_1.pas=</Transaction>
     <Transaction>1899.12.30 00:00:00.000.157,=C:\Users\Aleksandr\Desktop\Курсовая\ModelSupport_Chess_Kurs\Chess_Kurs\default.txvpck</Transaction>
     <Transaction>1899.12.30 00:00:00.000.950,C:\Users\Aleksandr\Desktop\Курсовая\Chess_Main_Menu.dfm=C:\Users\Aleksandr\Desktop\Курсовая\Chess_Main_Form.dfm</Transaction>
@@ -20,16 +20,16 @@
     <Transaction>1899.12.30 00:00:00.000.207,=C:\Users\Aleksandr\Desktop\Курсовая\ModelSupport_Chess_Kurs\UnitAfterGameFinished\default.txvpck</Transaction>
     <Transaction>1899.12.30 00:00:00.000.751,=C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.596,=C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.692,=C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.403,=C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.832,=C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.759,=C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.200,=C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.692,=C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.278,=C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.105,C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas=C:\Users\Aleksandr\Desktop\Курсовая\UnitChess2.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.912,C:\Users\Aleksandr\Desktop\Курсовая\UnitMyMessageBox.pas=C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.020,C:\Users\Aleksandr\Desktop\Курсовая\Chess_Main_Form.pas=C:\Users\Aleksandr\Desktop\Курсовая\UnitMainForm.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.380,C:\Users\Aleksandr\Desktop\Курсовая\UnitInterfaceDuringGame.pas=C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.767,=C:\Users\Aleksandr\Desktop\Курсовая\ModelSupport_Chess_Kurs\UnitSetupBoard\default.txvpck</Transaction>
     <Transaction>1899.12.30 00:00:00.000.933,=C:\Users\Aleksandr\Desktop\Курсовая\ModelSupport_Chess_Kurs\default.txvpck</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.912,C:\Users\Aleksandr\Desktop\Курсовая\UnitMyMessageBox.pas=C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.380,C:\Users\Aleksandr\Desktop\Курсовая\UnitInterfaceDuringGame.pas=C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.684,=C:\Users\Aleksandr\Desktop\Курсовая\ModelSupport_Chess_Kurs\default.txaPackage</Transaction>
     <Transaction>1899.12.30 00:00:00.000.950,C:\Users\Aleksandr\Desktop\Курсовая\Chess_Main_Menu.pas=C:\Users\Aleksandr\Desktop\Курсовая\Chess_Main_Form.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.104,C:\Users\Aleksandr\Documents\Embarcadero\Studio\Projects\Chess_Kurs.dproj=C:\Users\Aleksandr\Documents\Embarcadero\Studio\Projects\Project1.dproj</Transaction>
@@ -42,7 +42,7 @@
     <Transaction>1899.12.30 00:00:00.000.236,C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas=C:\Users\Aleksandr\Desktop\Курсовая\UnitCheckMoveIsLegal.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.930,C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas=C:\Users\Aleksandr\Desktop\Курсовая\UnitTimer.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.655,C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas=C:\Users\Aleksandr\Desktop\Курсовая\UnitReplayAndNotation.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.512,C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas=C:\Users\Aleksandr\Desktop\Курсовая\UnitCheckChecksMatesAndStalemates.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.879,C:\Users\Aleksandr\Desktop\Курсовая\Unit1.pas=C:\Users\Aleksandr\Desktop\Курсовая\UnitWorkWithFiles.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.985,=C:\Users\Aleksandr\Documents\Embarcadero\Studio\Projects\Unit5.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.926,C:\Users\Aleksandr\Desktop\Курсовая\UnitMyMessageBoxes.pas=C:\Users\Aleksandr\Desktop\Курсовая\UnitMyMessageBox.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.456,=C:\Users\Aleksandr\Desktop\Курсовая\ModelSupport_Chess_Kurs\UnitCreatingFigures\default.txvpck</Transaction>

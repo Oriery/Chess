@@ -43,6 +43,8 @@ begin
     begin
         ClearChessboard();
 
+        ImageBoard.Picture := ImageBoardLight.Picture;
+
         PlaceFiguresOnStandartPlace();
 
         GameIsSaved := True;
@@ -114,6 +116,8 @@ begin
         ShiftOfFigure := Round(SizeOfCell * (1 - SizeOfFigureComparedToCell) / 2);
 
         MultPix := LabelToMeasureScreenOfUser.Width / 100;
+
+        ImageBoard.Picture := ImageBoardLight.Picture;
 
         Screen.Cursors[1] :=
           HCursor(LoadCursorFromFile('Wii Pointer Open Hand.cur'));

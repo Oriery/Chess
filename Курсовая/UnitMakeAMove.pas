@@ -3,7 +3,8 @@ unit UnitMakeAMove;
 interface
 
 uses
-    System.SysUtils, UnitCreatingFigures, UnitSetupBoard, Vcl.ExtCtrls;
+    System.SysUtils, UnitCreatingFigures, UnitSetupBoard, Vcl.ExtCtrls, Types,
+    Winapi.Windows, Vcl.Forms;
 
 procedure MakeAMove(Figure: TFigure;
   NextPosOnBoardX, NextPosOnBoardY: Byte);
@@ -13,6 +14,7 @@ procedure AfterPawnTranformedOrNot();
 procedure KillFigureOnCell(PosX, PosY: Byte;
   ShouldWriteNotation: Boolean = True);
 procedure DoOneFrameOfAnimation();
+function CheckIfFigureOfColorIsUnderCursor(const ColorIsWhite: Boolean) : Boolean;
 
 var
     NowIsTakingOnAisle, NowIsCastling: Boolean;
@@ -263,23 +265,60 @@ end;
 
 procedure DoOneFrameOfAnimation();
 begin
-    with FormMain do
     with ImgToMoveWithAnimationGlobal do
         if (Abs(NeedLeft_AnimationOfImg - Left) < Abs(XPS_AnimationOfImg)) or
           (Abs(NeedTop_AnimationOfImg - Top) < Abs(YPS_AnimationOfImg)) then
         begin
-            TimerForAnimation.Enabled := False;
+            FormMain.TimerForAnimation.Enabled := False;
 
             Top := NeedTop_AnimationOfImg;
             Left := NeedLeft_AnimationOfImg;
 
             NowAnimating := False;
+
+            if CheckIfFigureOfColorIsUnderCursor(WhiteIsToMove) then
+                Screen.Cursor := 1
+            else
+                Screen.Cursor := 3;
         end
         else
         begin
             Top := Top + YPS_AnimationOfImg;
             Left := Left + XPS_AnimationOfImg;
         end;
+end;
+
+function CheckIfFigureOfColorIsUnderCursor(const ColorIsWhite: Boolean) : Boolean;
+var
+    Fig: TFigure;
+    i: Integer;
+    Rect: TRect;
+    ptCursor, ptPanel: TPoint;
+    FigureFound : Boolean;
+
+begin
+    GetCursorPos(ptCursor);
+    ptPanel := FormMain.PanelForBoard.ScreenToClient(Point(0, 0));;
+    ptCursor.X := ptCursor.X + ptPanel.X;
+    ptCursor.Y := ptCursor.Y + ptPanel.Y;
+
+    FigureFound := False;
+    i := 0;
+    while (i < Length(ArrOfFigures)) and not FigureFound do
+    begin
+        Fig := ArrOfFigures[i];
+
+        if Fig <> nil then
+        begin
+            Rect := Fig.BoundsRect;
+            if (ptCursor.X >= Rect.Left) and (ptCursor.X <= Rect.Right) and
+            (ptCursor.Y >= Rect.Top) and (ptCursor.Y <= Rect.Bottom) and (Fig.FIsWhite = ColorIsWhite) then
+                FigureFound := True;
+        end;
+        Inc(i);
+    end;
+
+    Result := FigureFound;
 end;
 
 end.

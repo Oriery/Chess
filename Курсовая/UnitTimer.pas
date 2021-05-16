@@ -57,18 +57,20 @@ begin
                 Parent := PanelForBoard;
                 Top := Round(PanelForBoard.Width / 2 - Height / 2);
                 Left := Round(PanelForBoard.Width / 2 - Width / 2);
-                BringToFront();
             end;
 
         if TimerForTimer.Enabled then
         begin
-            ImagePauseAndStartTimer.Picture := ImageReplayNext.Picture;
+            ImagePauseAndStartTimer.Picture := ImageGo.Picture;
             LabelPause.Visible := True;
+            ImageBoard.Picture := ImageBoardDark.Picture;
+            BringToFront();
         end
         else
         begin
             ImagePauseAndStartTimer.Picture := ImagePause.Picture;
             LabelPause.Visible := False;
+            ImageBoard.Picture := ImageBoardLight.Picture;
         end;
 
         TimerForTimer.Enabled := not TimerForTimer.Enabled;
@@ -80,9 +82,7 @@ begin
     with FormMain do
         if LabelPause.Visible then
         begin
-            ImagePauseAndStartTimer.Picture := ImagePause.Picture;
-            LabelPause.Visible := False;
-            TimerForTimer.Enabled := True;
+            PauseAndStartTimer();
         end;
 end;
 

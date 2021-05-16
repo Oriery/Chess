@@ -37,7 +37,7 @@ procedure MouseStartsToGrabFigure(Sender: TObject; Button: TMouseButton;
 begin
     StartTimerAfterPauseIfWasPaused();
 
-    if not Game.GameEnded and not NowAnimating then
+    if not Game.GameEnded and not NowAnimating and ((Sender as TFigure).FIsWhite = WhiteIsToMove) then
     begin
         With Sender as TFigure do
             if not FIsOnDrag then
@@ -100,6 +100,7 @@ begin
     if not Game.GameEnded then
     begin
         (Sender as TFigure).FIsOnDrag := False;
+
         With Sender as TFigure do
         begin
             PosX := Round((Left / MultPix - WidthOfEdgePlusAdjust -
@@ -112,14 +113,19 @@ begin
         if CheckMoveLegal(Figure, PosX, PosY) then
             MakeAMove(Figure, PosX, PosY)
         else
+        begin
             with Figure do
                 MoveFigureToCell(BoardReal, Figure, FPosOnBoardX, FPosOnBoardY);
+        end;
 
         NowIsTakingOnAisle := False;
         NowIsCastling := False;
 
-        if not Game.GameEnded then
-            Screen.Cursor := 1;
+        if not FormMain.TimerForAnimation.Enabled then
+            if CheckIfFigureOfColorIsUnderCursor(WhiteIsToMove) then
+                Screen.Cursor := 1
+            else
+                Screen.Cursor := 3;
     end;
 end;
 
